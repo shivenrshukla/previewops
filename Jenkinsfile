@@ -1,9 +1,9 @@
 pipeline {
     agent any
     environment {
-        AWS_ACCOUNT_ID = 'YOUR_12_DIGIT_ID' // Find this in the top right of AWS Console
+        AWS_ACCOUNT_ID = '885232248552' // Find this in the top right of AWS Console
         AWS_REGION     = 'eu-north-1'
-        ECR_REPO_NAME  = 'YOUR_REPO_NAME' // The name of the repo you created earlier
+        ECR_REPO_NAME  = 'previewops-backend' // The name of the repo you created earlier
         NAMESPACE      = "preview-env-${env.BUILD_NUMBER}"
     }
     stages {
