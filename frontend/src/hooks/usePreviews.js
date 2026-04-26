@@ -15,8 +15,34 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 
-const BRIDGE_API_BASE =
-  import.meta.env.VITE_BRIDGE_API_URL ?? "http://localhost:4000";
+/**
+ * Detects the Bridge API base URL dynamically based on the current window location.
+ * This solves the "Localhost Trap" in EKS by deriving the API host from the dashboard host.
+ *
+ * Example:
+ *  - Dashboard: http://env-123.previewops.local -> API: http://api-env-123.previewops.local
+ *  - Dashboard: http://localhost:3000       -> API: http://localhost:4000
+ */
+const getDynamicApiBase = () => {
+  if (typeof window === "undefined") return "http://localhost:4000";
+
+  const { hostname, protocol } = window.location;
+  const envVar = import.meta.env.VITE_BRIDGE_API_URL;
+
+  // 1. Manual override from .env takes precedence if it's a valid full URL
+  if (envVar && envVar.startsWith("http")) return envVar;
+
+  // 2. Development fallback
+  if (hostname === "localhost" || hostname === "127.0.0.1") {
+    return "http://localhost:4000";
+  }
+
+  // 3. Dynamic Preview Environment detection
+  // We prefix the current hostname with "api-" as per the ingress pattern.
+  return `${protocol}//api-${hostname}`;
+};
+
+const BRIDGE_API_BASE = getDynamicApiBase();
 
 const POLL_INTERVAL_MS = 30_000;
 
