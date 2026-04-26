@@ -3,17 +3,27 @@ kind: Ingress
 metadata:
   name: preview-ingress
   annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/enable-cors: "true" # Required for your React fetch!
 spec:
   ingressClassName: nginx
   rules:
-  - host: "env-DYNAMIC_ENV.previewops.local" # Our fake test URL
+  - host: "env-DYNAMIC_ENV.previewops.local" # Frontend Host
     http:
       paths:
       - path: /
         pathType: Prefix
         backend:
           service:
-            name: preview-service
+            name: frontend-service
             port:
               number: 80
+  - host: "api-env-DYNAMIC_ENV.previewops.local" # Backend Host (matches your JS logic)
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: bridge-api-service
+            port:
+              number: 80 # The port your Bridge API service is on

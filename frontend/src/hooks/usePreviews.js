@@ -24,22 +24,31 @@ import { useState, useEffect, useCallback, useRef } from "react";
  *  - Dashboard: http://localhost:3000       -> API: http://localhost:4000
  */
 const getDynamicApiBase = () => {
-  if (typeof window === "undefined") return "http://localhost:4000";
+  if (typeof window === "undefined") return "";
 
   const { hostname, protocol } = window.location;
   const envVar = import.meta.env.VITE_BRIDGE_API_URL;
 
-  // 1. Manual override from .env takes precedence if it's a valid full URL
-  if (envVar && envVar.startsWith("http")) return envVar;
-
-  // 2. Development fallback
-  if (hostname === "localhost" || hostname === "127.0.0.1") {
-    return "http://localhost:4000";
+  // 1. Manual override takes precedence if it's a valid full URL
+  // We check for "${" to avoid using un-evaluated templates from .env
+  if (envVar && envVar.startsWith("http") && !envVar.includes("${")) {
+    return envVar;
   }
 
-  // 3. Dynamic Preview Environment detection
-  // We prefix the current hostname with "api-" as per the ingress pattern.
-  return `${protocol}//api-${hostname}`;
+  // 2. Dynamic Preview Environment detection (EKS)
+  // If we are on env-XXX.previewops.local, we prefix with "api-"
+  if (hostname.includes("previewops.local") && !hostname.startsWith("api-")) {
+    return `${protocol}//api-${hostname}`;
+  }
+
+  // 3. Development fallback
+  // Return empty string for relative paths, letting Vite proxy handles it
+  if (hostname === "localhost" || hostname === "127.0.0.1") {
+    return "";
+  }
+
+  // 4. Default to same-origin relative path
+  return "";
 };
 
 const BRIDGE_API_BASE = getDynamicApiBase();
