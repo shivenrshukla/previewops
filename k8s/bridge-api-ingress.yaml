@@ -1,0 +1,22 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: bridge-api-ingress
+  annotations:
+    # Strip the /api prefix before forwarding to the app container
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+spec:
+  ingressClassName: nginx
+  rules:
+  # Bridge API host: api-env-{BUILD_NUMBER}.previewops.local
+  # Jenkins replaces DYNAMIC_ENV with env.BUILD_NUMBER (same sed as ingress.yaml)
+  - host: "api-env-DYNAMIC_ENV.previewops.local"
+    http:
+      paths:
+      - path: /api(/|$)(.*)
+        pathType: ImplementationSpecific
+        backend:
+          service:
+            name: preview-service
+            port:
+              number: 80

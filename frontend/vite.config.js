@@ -22,7 +22,7 @@ export default defineConfig({
     proxy: {
       // Proxies /api/* to the bridge-api in local dev — no CORS config needed
       '/api': {
-        target: 'http://localhost:4000',
+        target: 'http://localhost:3000',
         changeOrigin: true,
       },
     },

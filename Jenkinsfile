@@ -39,13 +39,15 @@ pipeline {
                     def fullImageName = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO_NAME}:${env.BUILD_NUMBER}"
                     sh "sed -i 's|IMAGE_TAG|${fullImageName}|g' k8s/deployment.yaml"
                     
-                    // 3. Inject the Dynamic URL Route into Ingress YAML
+                    // 3. Inject the Dynamic URL Route into Ingress YAMLs
                     sh "sed -i 's|DYNAMIC_ENV|${env.BUILD_NUMBER}|g' k8s/ingress.yaml"
+                    sh "sed -i 's|DYNAMIC_ENV|${env.BUILD_NUMBER}|g' k8s/bridge-api-ingress.yaml"
                     
                     // 4. Deploy
                     sh "kubectl apply -f k8s/deployment.yaml -n ${NAMESPACE}"
                     sh "kubectl apply -f k8s/service.yaml -n ${NAMESPACE}"
                     sh "kubectl apply -f k8s/ingress.yaml -n ${NAMESPACE}"
+                    sh "kubectl apply -f k8s/bridge-api-ingress.yaml -n ${NAMESPACE}"
                     
                     // 5. Wait for the URL
                     echo "Preview Environment is spinning up in namespace: ${NAMESPACE}"
