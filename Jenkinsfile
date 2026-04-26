@@ -7,6 +7,15 @@ pipeline {
         NAMESPACE      = "preview-env-${env.BUILD_NUMBER}"
     }
     stages {
+        stage('Build Frontend') {
+            steps {
+                dir('frontend') {
+                    sh 'npm install'
+                    sh 'npm run build'
+                    // Output lands in frontend/dist/ — picked up by COPY . . in Dockerfile
+                }
+            }
+        }
         stage('Docker Build & Push') {
             steps {
                 script {

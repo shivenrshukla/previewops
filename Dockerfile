@@ -1,7 +1,20 @@
-# STAGE 1: Build
+# STAGE 1: Build React frontend
+FROM node:20-alpine AS frontend-builder
+
+WORKDIR /app/frontend
+
+# Install frontend deps (scoped to frontend/ only)
+COPY frontend/package*.json ./
+RUN npm install
+
+# Copy frontend source and build
+COPY frontend/ ./
+RUN npm run build
+# Output: /app/frontend/dist/
+
+# STAGE 2: Build backend (your original build stage, unchanged)
 FROM node:20-alpine AS builder
 
-# Set working directory
 WORKDIR /app
 
 # Copy package files and install dependencies
@@ -11,10 +24,13 @@ RUN npm install
 # Copy the rest of your backend code
 COPY . .
 
+# Copy the built frontend from stage 1 into the backend image
+COPY --from=frontend-builder /app/frontend/dist ./frontend/dist
+
 # If you have a build script (like for TypeScript), uncomment the next line
 # RUN npm run build
 
-# STAGE 2: Run
+# STAGE 3: Run (your original run stage, unchanged)
 FROM node:20-alpine
 
 WORKDIR /app
@@ -24,7 +40,7 @@ COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/ .
 
-# Expose the port your backend runs on (usually 5000 or 8080)
+# Expose the port your backend runs on
 EXPOSE 3000
 
 # Start the application
