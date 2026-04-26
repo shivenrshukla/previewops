@@ -32,6 +32,8 @@ pipeline {
                     
                     // 3. Deploy
                     sh "kubectl apply -f k8s/deployment.yaml -n ${NAMESPACE}"
+                    sh "kubectl apply -f k8s/service.yaml -n ${NAMESPACE}"
+                    sh "kubectl apply -f k8s/ingress.yaml -n ${NAMESPACE}"
                     
                     // 4. Wait for the URL
                     echo "Preview Environment is spinning up in namespace: ${NAMESPACE}"
