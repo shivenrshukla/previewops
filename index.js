@@ -58,6 +58,8 @@ app.get('/api/previews', async (_req, res) => {
         return {
           prNumber:   buildNumber,
           title:      gh?.title     ?? `Preview #${buildNumber}`,
+          displayName: gh?.title    ?? `Internal Environment ${buildNumber}`,
+          previewLabel: `View Website Changes`,
           author:     gh?.author    ?? 'unknown',
           branch:     gh?.branch    ?? `preview-env-${buildNumber}`,
           status,

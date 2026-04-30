@@ -39,32 +39,38 @@ export default function DeploymentCard({ deployment, onTeardown }) {
       {/* ── Header ──────────────────────────────────────────── */}
       <div className="flex items-start justify-between gap-3">
         {/* PR identity */}
-        <div className="flex items-center gap-3 min-w-0">
+        <a
+          href={liveUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={`flex items-center gap-3 min-w-0 group transition-all
+            ${liveUrl ? "hover:translate-x-1" : "cursor-default opacity-80"}`}
+        >
           <div
             className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0
               ${isDestroyed
                 ? "bg-zinc-800/60"
-                : "bg-zinc-800 border border-zinc-700/50"}`}
+                : "bg-zinc-800 border border-zinc-700/50 group-hover:border-indigo-500/40 group-hover:bg-indigo-950/20"}`}
           >
-            <GitPullRequest
+            <Globe
               size={15}
-              className={isDestroyed ? "text-zinc-600" : "text-indigo-400"}
+              className={isDestroyed ? "text-zinc-600" : "text-indigo-400 group-hover:text-indigo-300"}
             />
           </div>
 
           <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-white font-bold text-sm font-mono">
-                PR #{prNumber}
+              <span className="text-white font-bold text-sm font-mono group-hover:text-indigo-300">
+                Live Preview
               </span>
               <StatusBadge status={status} />
             </div>
             <div className="flex items-center gap-1.5 mt-0.5">
               <User size={10} className="text-zinc-600" />
-              <span className="text-zinc-500 text-[11px] font-mono">{author}</span>
+              <span className="text-zinc-500 text-[11px] font-mono truncate">{author}</span>
             </div>
           </div>
-        </div>
+        </a>
 
         {/* Teardown button */}
         <TeardownButton
@@ -158,11 +164,12 @@ function UrlRow({ liveUrl, isDestroyed, isProvisioning }) {
           hover:bg-indigo-950/60 hover:border-indigo-500/40 hover:text-indigo-300
           transition-all duration-200 group"
       >
-        <ExternalLink
+        <Globe
           size={11}
           className="flex-shrink-0 group-hover:scale-110 transition-transform"
         />
-        <span className="text-[11px] font-mono truncate">{liveUrl}</span>
+        <span className="text-[11px] font-mono truncate">Open Live Changes</span>
+        <ExternalLink size={10} className="ml-auto opacity-50" />
       </a>
     );
   }

@@ -212,7 +212,7 @@ export default function PreviewsTable({ className = "" }) {
   const buildingCount = previews.filter((p) => p.status === "Building").length;
 
   const columns = [
-    { key: "prNumber",  label: "Pull Request",  width: "w-[38%]" },
+    { key: "prNumber",  label: "Live Preview & Changes",  width: "w-[38%]" },
     { key: "status",    label: "Status",         width: "w-[15%]" },
     { key: "namespace", label: "Namespace",      width: "w-[22%]" },
     { key: "updatedAt", label: "Last Activity",  width: "w-[15%]" },
@@ -387,9 +387,15 @@ function TableRow({ preview }) {
                 <Github size={11} />
               </a>
             </div>
-            <p className="text-zinc-400 text-[11px] truncate max-w-[220px]">
+            <a
+              href={preview.previewUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`text-zinc-400 text-[11px] truncate max-w-[220px] transition-colors
+                ${isLive ? "hover:text-indigo-400 underline decoration-indigo-500/30" : "cursor-default"}`}
+            >
               {preview.title}
-            </p>
+            </a>
             <p className="text-zinc-600 text-[10px] font-mono">
               @{preview.author} · {preview.branch}
             </p>
@@ -441,7 +447,7 @@ function TableRow({ preview }) {
               transition-all duration-200 active:scale-95 group whitespace-nowrap"
           >
             <Globe size={11} className="group-hover:scale-110 transition-transform" />
-            View
+            View Website
             <ExternalLink size={9} />
           </a>
         ) : (
