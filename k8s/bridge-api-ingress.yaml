@@ -17,6 +17,6 @@ spec:
         pathType: ImplementationSpecific
         backend:
           service:
-            name: preview-service
+            name: bridge-api-service # <--- FIXED: Now points to the Bridge API
             port:
               number: 80

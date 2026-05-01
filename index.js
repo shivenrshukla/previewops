@@ -1,14 +1,19 @@
-import express from 'express';
+import dotenv from 'dotenv';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname  = dirname(__filename);
+
+// Load environment variables from bridge-api/.env
+dotenv.config({ path: join(__dirname, 'bridge-api', '.env') });
+
+import express from 'express';
 import { listPreviewNamespaces, getNamespaceStatus } from './bridge-api/k8s-client.js';
 import { fetchOpenPRs } from './bridge-api/github-client.js';
 
 const app  = express();
 const port = 3000;
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname  = dirname(__filename);
 
 // ── Serve the built React dashboard ─────────────────────────────────────────
 // Built by `npm run build` inside frontend/ → output lands in frontend/dist/
@@ -33,8 +38,6 @@ app.get('/api/health', (_req, res) => {
 /**
  * GET /api/previews
  * Returns all active preview environments enriched with optional GitHub PR data.
- *
- * Response shape matches the PreviewEntry typedef in usePreviews.js.
  */
 app.get('/api/previews', async (_req, res) => {
   try {

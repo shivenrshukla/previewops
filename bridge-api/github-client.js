@@ -5,15 +5,9 @@
  * Set these environment variables to enable GitHub integration:
  *   GITHUB_TOKEN=ghp_xxxxxxxxxxxxxxxxxxxx
  *   GITHUB_REPO=my-org/my-app
- *
- * If either variable is missing, all functions return empty Maps
- * and the dashboard falls back to namespace-only data gracefully.
  */
 
-const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
-const GITHUB_REPO  = process.env.GITHUB_REPO;
-
-const GITHUB_API   = 'https://api.github.com';
+const GITHUB_API = 'https://api.github.com';
 
 /**
  * Makes an authenticated request to the GitHub REST API.
@@ -21,6 +15,8 @@ const GITHUB_API   = 'https://api.github.com';
  * @returns {Promise<Object|null>}
  */
 async function githubFetch(path) {
+  const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
+  
   try {
     const res = await fetch(`${GITHUB_API}${path}`, {
       headers: {
@@ -45,17 +41,11 @@ async function githubFetch(path) {
 /**
  * Fetches all open PRs for the configured repo and returns them
  * indexed by PR number for O(1) lookup when enriching namespace data.
- *
- * @returns {Promise<Map<number, {
- *   prNumber: number,
- *   title:    string,
- *   author:   string,
- *   branch:   string,
- *   prUrl:    string,
- *   updatedAt:string,
- * }>>}
  */
 export async function fetchOpenPRs() {
+  const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
+  const GITHUB_REPO  = process.env.GITHUB_REPO;
+
   if (!GITHUB_TOKEN || !GITHUB_REPO) {
     if (!GITHUB_TOKEN) console.warn('[github-client] GITHUB_TOKEN not set — skipping PR enrichment.');
     if (!GITHUB_REPO)  console.warn('[github-client] GITHUB_REPO not set — skipping PR enrichment.');
