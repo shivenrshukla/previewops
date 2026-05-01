@@ -41,14 +41,11 @@ pipeline {
                     
                     // 3. Inject the Dynamic URL Route into Ingress YAMLs
                     sh "sed -i 's|DYNAMIC_ENV|${env.BUILD_NUMBER}|g' k8s/ingress.yaml"
-                    sh "sed -i 's|DYNAMIC_ENV|${env.BUILD_NUMBER}|g' k8s/bridge-api-ingress.yaml"
                     
                     // 4. Deploy
                     sh "kubectl apply -f k8s/deployment.yaml -n ${NAMESPACE}"
                     sh "kubectl apply -f k8s/service.yaml -n ${NAMESPACE}"
                     sh "kubectl apply -f k8s/ingress.yaml -n ${NAMESPACE}"
-                    sh "kubectl apply -f k8s/bridge-api-ingress.yaml -n ${NAMESPACE}"
-                    sh "kubectl apply -f k8s/bridge-api-deployment.yaml -n ${NAMESPACE}"
                     
                     // 5. Wait for the URL
                     echo "Preview Environment is spinning up in namespace: ${NAMESPACE}"

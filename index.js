@@ -47,16 +47,26 @@ app.get('/api/previews', async (_req, res) => {
       fetchOpenPRs(),
     ]);
 
-    // Resolve status for each namespace (also in parallel)
+    // Create a set of all build numbers we know about
+    const nsMap = new Map(namespaces.map(ns => [ns.buildNumber, ns]));
+    const allBuildNumbers = new Set([...nsMap.keys(), ...prMap.keys()]);
+
     const entries = await Promise.all(
-      namespaces.map(async ({ namespace, buildNumber, createdAt }) => {
-        const status = await getNamespaceStatus(namespace);
+      Array.from(allBuildNumbers).map(async (buildNumber) => {
+        const ns = nsMap.get(buildNumber);
+        const gh = prMap.get(buildNumber);
+        
+        // If we have a namespace, get its status. Otherwise, it's "Pending" or "Destroyed"
+        let status = 'Pending';
+        if (ns) {
+          status = await getNamespaceStatus(ns.namespace);
+        } else if (gh) {
+          status = 'Pending'; // PR exists but no K8s namespace yet
+        }
 
-        // GitHub enrichment (optional — falls back to defaults if token not set)
-        const gh = prMap.get(buildNumber) ?? null;
-
-        // Preview URL matches the Ingress host pattern: env-{BUILD_NUMBER}.previewops.local
-        const previewUrl = `http://env-${buildNumber}.previewops.local`;
+        // Preview URL matches the Ingress host pattern: defaults to env-{ID}.previewops.local
+        const template   = process.env.PREVIEW_URL_TEMPLATE || 'http://env-{id}.previewops.local';
+        const previewUrl = template.replace('{id}', buildNumber);
 
         return {
           prNumber:   buildNumber,
@@ -67,16 +77,16 @@ app.get('/api/previews', async (_req, res) => {
           branch:     gh?.branch    ?? `preview-env-${buildNumber}`,
           status,
           previewUrl: status === 'Live' ? previewUrl : null,
-          namespace,
-          hasK8s:     true,
-          updatedAt:  gh?.updatedAt ?? createdAt,
+          namespace:  ns?.namespace  ?? `preview-env-${buildNumber}`,
+          hasK8s:     !!ns,
+          updatedAt:  gh?.updatedAt ?? ns?.createdAt ?? new Date().toISOString(),
           prUrl:      gh?.prUrl     ?? null,
         };
       })
     );
 
-    // Sort: Live first, then Provisioning, then others
-    const ORDER = { Live: 0, Provisioning: 1, 'Tearing Down...': 2, Destroyed: 3 };
+    // Sort: Live first, then Provisioning, then Pending, then others
+    const ORDER = { Live: 0, Provisioning: 1, Pending: 2, 'Tearing Down...': 3, Destroyed: 4 };
     entries.sort((a, b) => (ORDER[a.status] ?? 9) - (ORDER[b.status] ?? 9));
 
     res.json(entries);

@@ -14,7 +14,7 @@ spec:
         pathType: Prefix
         backend:
           service:
-            name: frontend-service
+            name: preview-service
             port:
               number: 80
   - host: "api-env-DYNAMIC_ENV.previewops.local" # Backend Host (matches your JS logic)
@@ -24,6 +24,6 @@ spec:
         pathType: Prefix
         backend:
           service:
-            name: bridge-api-service
+            name: preview-service
             port:
-              number: 80 # The port your Bridge API service is on
+              number: 80 # The unified service port

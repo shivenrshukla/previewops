@@ -11,8 +11,9 @@ import { promisify } from 'util';
 
 const execFileAsync = promisify(execFile);
 
-// Namespace name pattern set by Jenkinsfile: preview-env-{BUILD_NUMBER}
-const NS_PATTERN = /^preview-env-(\d+)$/;
+// Namespace name pattern: defaults to preview-env-{ID}
+// Configurable via NAMESPACE_PATTERN env var (must include one capture group for the ID)
+const NS_PATTERN = new RegExp(process.env.NAMESPACE_PATTERN || '^preview-env-(\\d+)$');
 
 /**
  * Maps Kubernetes pod phases to the frontend's DeploymentStatus type.
