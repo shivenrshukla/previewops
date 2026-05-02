@@ -93,6 +93,7 @@ app.get('/api/previews', async (_req, res) => {
         // Expand into one card per incoming PR (master shows all open PRs at a glance)
         for (const gh of incomingPRs) {
           allEntries.push({
+            id:          `${branch}:pr-${gh.prNumber}`,  // unique: "master:pr-13"
             prNumber:    gh.prNumber,
             title:       gh.title,
             displayName: gh.title,
@@ -112,6 +113,7 @@ app.get('/api/previews', async (_req, res) => {
         // Feature branch or standalone branch (no PRs targeting it)
         const gh = byHead.get(branch);
         allEntries.push({
+          id:          branch,            // unique: "development", "pr-12", etc.
           prNumber:    gh?.prNumber  ?? null,
           title:       gh?.title     ?? `Branch: ${branch}`,
           displayName: gh?.title     ?? `Internal Environment: ${branch}`,

@@ -1,289 +1,202 @@
 /**
- * DashboardView.jsx — Premium Redesign
- * Deep-space ops terminal: layered glass surfaces, luminous glows,
- * animated scan lines, silky micro-interactions, IBM Plex Mono.
+ * DashboardView.jsx — Redesigned
+ * Mission-control terminal aesthetic: IBM Plex Mono throughout,
+ * electric-cyan on deep-navy, data-dense cards, animated indicators.
  */
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useDeployments } from "@/hooks/useDeployments";
 
 /* ─── Inline Google Font ─────────────────────────────────────────────────── */
 const FontLink = () => (
   <link
-    href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap"
+    href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&display=swap"
     rel="stylesheet"
   />
 );
 
 /* ─── Design tokens ──────────────────────────────────────────────────────── */
 const T = {
-  // Backgrounds — layered depth
-  bg0:      "#02060f",   // void
-  bg1:      "#060d1a",   // base
-  bg2:      "#091221",   // card
-  bg3:      "#0d1829",   // elevated card
-  bg4:      "#112035",   // hover surface
-
-  // Borders
-  border0:  "#0d1e33",   // hairline
-  border1:  "#132840",   // default
-  border2:  "#1e3d5c",   // emphasis
-  border3:  "#2a5278",   // active
-
-  // Accents
-  cyan:     "#00e5c3",   // primary — electric teal
-  cyanMid:  "#00b89a",
-  cyanDim:  "#002e26",
-  cyanGlow: "#00e5c320",
-
-  emerald:  "#00d97e",   // secondary green
-  amber:    "#ffb020",   // warning
-  amberDim: "#2a1a00",
-  red:      "#ff4c4c",   // error
-  redDim:   "#2a0000",
-  violet:   "#9d8cff",   // info / metric
-  violetDim:"#1a1540",
-
-  // Text
-  text0:    "#dde8f5",   // primary
-  text1:    "#7a9ab8",   // secondary
-  text2:    "#3d5a78",   // muted
-  text3:    "#1f3349",   // decorative
-
-  font:     `'IBM Plex Mono', 'Courier New', monospace`,
+  bg0:     "#060b14",   // deepest background
+  bg1:     "#0b1220",   // card background
+  bg2:     "#111827",   // slightly lifted surface
+  bg3:     "#1a2234",   // hover / selected surface
+  border:  "#1e2d44",   // default border
+  border2: "#2a3d5a",   // emphasis border
+  cyan:    "#06d6a0",   // primary accent (emerald-cyan)
+  cyanDim: "#064e3b",   // accent fill dim
+  amber:   "#f59e0b",   // warning / provisioning
+  amberDim:"#451a03",
+  red:     "#ef4444",   // error / failed
+  redDim:  "#450a0a",
+  violet:  "#818cf8",   // info accent
+  violetDim:"#1e1b4b",
+  text0:   "#e2e8f0",   // primary text
+  text1:   "#94a3b8",   // secondary text
+  text2:   "#475569",   // muted text
+  text3:   "#2d3f55",   // very muted / decorative
+  font:    `'IBM Plex Mono', 'Courier New', monospace`,
 };
-
-/* ─── Global styles ──────────────────────────────────────────────────────── */
-const GlobalStyles = () => (
-  <style>{`
-    *, *::before, *::after { box-sizing: border-box; }
-    body { margin: 0; background: ${T.bg0}; }
-    a { text-decoration: none; }
-    button { font-family: ${T.font}; }
-    input::placeholder { color: ${T.text3}; }
-    ::-webkit-scrollbar { width: 3px; height: 3px; }
-    ::-webkit-scrollbar-track { background: ${T.bg0}; }
-    ::-webkit-scrollbar-thumb { background: ${T.border2}; border-radius: 4px; }
-
-    @keyframes ping {
-      0%   { transform: scale(1);   opacity: 0.5; }
-      70%  { transform: scale(2.5); opacity: 0; }
-      100% { transform: scale(2.5); opacity: 0; }
-    }
-    @keyframes scanline {
-      0%   { transform: translateY(-100%); }
-      100% { transform: translateY(100vh); }
-    }
-    @keyframes blink-cursor {
-      0%, 49% { opacity: 1; }
-      50%, 100% { opacity: 0; }
-    }
-    @keyframes shimmer {
-      0%   { background-position: -400px 0; }
-      100% { background-position: 400px 0; }
-    }
-    @keyframes fadeSlideUp {
-      from { opacity: 0; transform: translateY(8px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-    @keyframes glow-pulse {
-      0%, 100% { box-shadow: 0 0 8px ${T.cyan}40; }
-      50%       { box-shadow: 0 0 20px ${T.cyan}70; }
-    }
-    @keyframes rotate-ring {
-      from { transform: rotate(0deg); }
-      to   { transform: rotate(360deg); }
-    }
-
-    .card-enter {
-      animation: fadeSlideUp 0.3s ease forwards;
-    }
-    .metric-glow {
-      animation: glow-pulse 3s ease-in-out infinite;
-    }
-  `}</style>
-);
 
 /* ─── Helpers ─────────────────────────────────────────────────────────────── */
 const statusMeta = {
-  Live:         { color: T.cyan,   bg: T.cyanDim,   glow: T.cyan,   label: "LIVE",         dot: true  },
-  Provisioning: { color: T.amber,  bg: T.amberDim,  glow: T.amber,  label: "BUILDING",     dot: true  },
-  Failed:       { color: T.red,    bg: T.redDim,    glow: T.red,    label: "FAILED",       dot: false },
-  Idle:         { color: T.text2,  bg: T.bg4,       glow: "none",   label: "IDLE",         dot: false },
+  Live:         { color: T.cyan,   bg: T.cyanDim,   label: "LIVE",         dot: true  },
+  Provisioning: { color: T.amber,  bg: T.amberDim,  label: "PROVISIONING", dot: true  },
+  Failed:       { color: T.red,    bg: T.redDim,    label: "FAILED",       dot: false },
+  Idle:         { color: T.text2,  bg: T.bg3,       label: "IDLE",         dot: false },
 };
 
 const checkMeta = {
-  pass:    { color: T.cyan,    char: "✓", label: "PASS" },
-  warn:    { color: T.amber,   char: "!", label: "WARN" },
-  fail:    { color: T.red,     char: "✗", label: "FAIL" },
-  running: { color: T.violet,  char: "◌", label: "RUN"  },
-  pending: { color: T.text2,   char: "·", label: "WAIT" },
+  pass:    { color: T.cyan,   char: "✓" },
+  warn:    { color: T.amber,  char: "!" },
+  fail:    { color: T.red,    char: "✗" },
+  running: { color: T.violet, char: "◌" },
+  pending: { color: T.text2,  char: "·" },
 };
 
-/* ─── Pulse dot ─────────────────────────────────────────────────────────── */
-function PulseDot({ color, size = 6 }) {
-  return (
-    <span style={{ position: "relative", display: "inline-flex", width: size, height: size, flexShrink: 0 }}>
-      <span style={{
-        position: "absolute", inset: 0, borderRadius: "50%",
-        background: color, opacity: 0.4,
-        animation: "ping 1.8s ease-out infinite",
-      }} />
-      <span style={{
-        position: "relative", width: size, height: size,
-        borderRadius: "50%", background: color, display: "inline-block",
-        boxShadow: `0 0 6px ${color}`,
-      }} />
-    </span>
-  );
-}
-
-/* ─── Status badge ──────────────────────────────────────────────────────── */
-function StatusBadge({ status }) {
-  const m = statusMeta[status] || statusMeta.Idle;
-  return (
-    <span style={{
-      display: "inline-flex", alignItems: "center", gap: 5,
-      fontSize: 8, fontWeight: 600, letterSpacing: "0.16em",
-      color: m.color,
-      background: m.bg,
-      border: `1px solid ${m.color}30`,
-      borderRadius: 2,
-      padding: "2px 8px",
-      boxShadow: m.dot ? `inset 0 0 8px ${m.color}10, 0 0 10px ${m.color}15` : "none",
-    }}>
-      {m.dot && <PulseDot color={m.color} size={4} />}
-      {m.label}
-    </span>
-  );
-}
-
-/* ─── Check pill ────────────────────────────────────────────────────────── */
-function CheckPill({ label, state }) {
-  const m = checkMeta[state] || checkMeta.pending;
-  return (
-    <span title={`${label}: ${state}`} style={{
-      fontSize: 9, color: m.color,
-      background: `${m.color}08`,
-      border: `1px solid ${m.color}25`,
-      borderRadius: 2,
-      padding: "2px 7px",
-      display: "inline-flex", alignItems: "center", gap: 4,
-      letterSpacing: "0.04em",
-    }}>
-      <span style={{ fontSize: 8 }}>{m.char}</span>
-      <span style={{ color: T.text1, fontSize: 8, letterSpacing: "0.1em" }}>{label}</span>
-    </span>
-  );
-}
-
-/* ─── Usage bar ─────────────────────────────────────────────────────────── */
 function UsageBar({ value, max, color }) {
   const pct = Math.min(100, Math.round((value / max) * 100));
   const barColor = pct > 80 ? T.red : pct > 60 ? T.amber : color;
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-      <div style={{
-        flex: 1, height: 2,
-        background: T.border0,
-        borderRadius: 2, overflow: "hidden",
-        position: "relative",
-      }}>
-        {/* Track glow */}
-        <div style={{
-          position: "absolute", inset: 0,
-          background: `${barColor}10`,
-        }} />
-        <div style={{
-          width: `${pct}%`, height: "100%",
-          background: `linear-gradient(to right, ${barColor}aa, ${barColor})`,
-          boxShadow: `2px 0 8px ${barColor}80`,
-          transition: "width 0.8s cubic-bezier(0.4,0,0.2,1)",
-        }} />
+    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+      <div
+        style={{
+          flex: 1,
+          height: 3,
+          background: T.border,
+          borderRadius: 2,
+          overflow: "hidden",
+        }}
+      >
+        <div
+          style={{
+            width: `${pct}%`,
+            height: "100%",
+            background: barColor,
+            transition: "width 0.6s ease",
+          }}
+        />
       </div>
-      <span style={{
-        fontSize: 9, color: pct > 80 ? barColor : T.text1,
-        minWidth: 28, textAlign: "right", letterSpacing: "0.04em",
-        transition: "color 0.3s",
-      }}>
+      <span style={{ fontSize: 10, color: T.text1, minWidth: 26, textAlign: "right" }}>
         {pct}%
       </span>
     </div>
   );
 }
 
-/* ─── Metric tile ────────────────────────────────────────────────────────── */
-function MetricTile({ label, value, sub, accent, index = 0 }) {
-  const [hovered, setHovered] = useState(false);
-
+function PulseDot({ color, size = 6 }) {
   return (
-    <div
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
+    <span style={{ position: "relative", display: "inline-flex", width: size, height: size }}>
+      <span
+        style={{
+          position: "absolute",
+          inset: 0,
+          borderRadius: "50%",
+          background: color,
+          opacity: 0.4,
+          animation: "ping 1.6s ease-out infinite",
+        }}
+      />
+      <span
+        style={{
+          position: "relative",
+          width: size,
+          height: size,
+          borderRadius: "50%",
+          background: color,
+          display: "inline-block",
+        }}
+      />
+    </span>
+  );
+}
+
+function StatusBadge({ status }) {
+  const m = statusMeta[status] || statusMeta.Idle;
+  return (
+    <span
       style={{
-        background: hovered
-          ? `linear-gradient(135deg, ${T.bg3}, ${T.bg4})`
-          : `linear-gradient(135deg, ${T.bg2}, ${T.bg3})`,
-        border: `1px solid ${hovered ? (accent || T.border2) + "55" : T.border1}`,
-        borderRadius: 6,
-        padding: "16px 18px",
-        position: "relative",
-        overflow: "hidden",
-        cursor: "default",
-        transition: "border-color 0.2s, background 0.2s",
-        animation: `fadeSlideUp 0.4s ease ${index * 0.06}s both`,
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 5,
+        fontSize: 9,
+        fontWeight: 600,
+        letterSpacing: "0.12em",
+        color: m.color,
+        background: m.bg,
+        border: `1px solid ${m.color}22`,
+        borderRadius: 3,
+        padding: "2px 7px",
       }}
     >
-      {/* Corner accent pip */}
-      <div style={{
-        position: "absolute", top: 0, right: 0,
-        width: 28, height: 28,
-        background: `radial-gradient(circle at top right, ${(accent || T.border2)}30, transparent 70%)`,
-      }} />
+      {m.dot && <PulseDot color={m.color} size={5} />}
+      {m.label}
+    </span>
+  );
+}
 
-      {/* Bottom edge accent */}
-      <div style={{
-        position: "absolute", bottom: 0, left: 0, right: 0, height: 1,
-        background: hovered
-          ? `linear-gradient(to right, transparent, ${accent || T.border2}88, transparent)`
-          : `linear-gradient(to right, transparent, ${accent || T.border2}30, transparent)`,
-        transition: "background 0.3s",
-      }} />
+function CheckPill({ label, state }) {
+  const m = checkMeta[state] || checkMeta.pending;
+  return (
+    <span
+      title={`${label}: ${state}`}
+      style={{
+        fontSize: 10,
+        color: m.color,
+        border: `1px solid ${m.color}33`,
+        borderRadius: 3,
+        padding: "1px 6px",
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 3,
+      }}
+    >
+      <span>{m.char}</span>
+      <span style={{ color: T.text2 }}>{label}</span>
+    </span>
+  );
+}
 
-      <div style={{
-        fontSize: 8, letterSpacing: "0.18em", color: T.text2,
-        marginBottom: 10, fontWeight: 500,
-      }}>
+/* ─── Metric tile ─────────────────────────────────────────────────────────── */
+function MetricTile({ label, value, sub, accent }) {
+  return (
+    <div
+      style={{
+        background: T.bg1,
+        border: `1px solid ${T.border}`,
+        borderRadius: 6,
+        padding: "12px 16px",
+        position: "relative",
+        overflow: "hidden",
+      }}
+    >
+      <div
+        style={{
+          position: "absolute",
+          bottom: 0,
+          left: 0,
+          right: 0,
+          height: 2,
+          background: accent || T.border2,
+          opacity: 0.6,
+        }}
+      />
+      <div style={{ fontSize: 9, letterSpacing: "0.14em", color: T.text2, marginBottom: 6 }}>
         {label}
       </div>
-
-      <div style={{
-        fontSize: 28, fontWeight: 600, lineHeight: 1,
-        color: hovered ? (accent || T.text0) : (accent || T.text0),
-        textShadow: hovered && accent ? `0 0 20px ${accent}60` : "none",
-        transition: "text-shadow 0.3s",
-        fontVariantNumeric: "tabular-nums",
-      }}>
+      <div style={{ fontSize: 22, fontWeight: 600, color: accent || T.text0, lineHeight: 1 }}>
         {value}
       </div>
-
       {sub && (
-        <div style={{
-          fontSize: 9, color: T.text2, marginTop: 6,
-          letterSpacing: "0.06em",
-        }}>
-          {sub}
-        </div>
+        <div style={{ fontSize: 10, color: T.text2, marginTop: 4 }}>{sub}</div>
       )}
     </div>
   );
 }
 
-/* ─── Deployment card ────────────────────────────────────────────────────── */
-function DeploymentCard({ d, onTeardown, index = 0 }) {
+/* ─── Deployment card ─────────────────────────────────────────────────────── */
+function DeploymentCard({ d, onTeardown }) {
   const [hovered, setHovered] = useState(false);
-  const [tearHovered, setTearHovered] = useState(false);
-  const [previewHovered, setPreviewHovered] = useState(false);
   const sm = statusMeta[d.status] || statusMeta.Idle;
 
   return (
@@ -291,151 +204,120 @@ function DeploymentCard({ d, onTeardown, index = 0 }) {
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
-        background: hovered
-          ? `linear-gradient(160deg, ${T.bg3} 0%, ${T.bg4} 100%)`
-          : `linear-gradient(160deg, ${T.bg2} 0%, ${T.bg3} 100%)`,
-        border: `1px solid ${hovered ? T.border2 : T.border1}`,
-        borderLeft: `2px solid ${hovered ? sm.color : sm.color + "66"}`,
+        background: hovered ? T.bg2 : T.bg1,
+        border: `1px solid ${hovered ? T.border2 : T.border}`,
+        borderLeft: `3px solid ${sm.color}`,
         borderRadius: 6,
-        padding: "18px 18px 14px",
-        display: "flex", flexDirection: "column", gap: 12,
-        transition: "background 0.2s, border-color 0.2s, box-shadow 0.2s",
-        boxShadow: hovered
-          ? `0 4px 32px ${sm.color}12, 0 0 0 1px ${sm.color}10, inset 0 1px 0 ${T.border2}40`
-          : `0 2px 8px #00000040, inset 0 1px 0 ${T.border1}40`,
-        position: "relative",
-        overflow: "hidden",
-        animation: `fadeSlideUp 0.4s ease ${index * 0.05}s both`,
-        cursor: "default",
+        padding: "14px 16px",
+        transition: "background 0.15s, border-color 0.15s",
+        display: "flex",
+        flexDirection: "column",
+        gap: 10,
       }}
     >
-      {/* Top-right glow for live */}
-      {d.status === "Live" && (
-        <div style={{
-          position: "absolute", top: -20, right: -20,
-          width: 80, height: 80,
-          borderRadius: "50%",
-          background: `radial-gradient(circle, ${T.cyan}18, transparent 70%)`,
-          pointerEvents: "none",
-          opacity: hovered ? 1 : 0.5,
-          transition: "opacity 0.3s",
-        }} />
-      )}
-
-      {/* Row 1: PR + status + age */}
+      {/* Row 1: PR number + status + age */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <span style={{
-            fontSize: 10, color: sm.color, fontWeight: 600,
-            letterSpacing: "0.06em",
-            textShadow: `0 0 10px ${sm.color}60`,
-          }}>
-            #{d.pr}
-          </span>
+          <span style={{ fontSize: 10, color: sm.color, fontWeight: 600 }}>#{d.pr}</span>
           <StatusBadge status={d.status} />
         </div>
-        <span style={{
-          fontSize: 8, color: T.text2, letterSpacing: "0.1em",
-          fontStyle: "italic",
-        }}>
-          {d.age}
-        </span>
+        <span style={{ fontSize: 9, color: T.text2 }}>{d.age}</span>
       </div>
 
       {/* Row 2: Title */}
       <div
         title={d.title}
         style={{
-          fontSize: 11, color: T.text0, lineHeight: 1.55,
+          fontSize: 11,
+          color: T.text0,
+          lineHeight: 1.45,
           overflow: "hidden",
           display: "-webkit-box",
-          WebkitLineClamp: 2, WebkitBoxOrient: "vertical",
-          letterSpacing: "0.01em",
+          WebkitLineClamp: 2,
+          WebkitBoxOrient: "vertical",
         }}
       >
         {d.title}
       </div>
 
-      {/* Row 3: Meta line */}
-      <div style={{
-        display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap",
-        paddingBottom: 10,
-        borderBottom: `1px solid ${T.border0}`,
-      }}>
-        <span style={{ fontSize: 9, color: T.text1 }}>{d.author}</span>
-        <span style={{ color: T.text3, fontSize: 10 }}>·</span>
-        <span style={{ fontSize: 9, color: T.violet, letterSpacing: "0.04em" }}>{d.branch}</span>
-        <span style={{ color: T.text3, fontSize: 10 }}>·</span>
+      {/* Row 3: Author / Branch / Commit */}
+      <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
         <span style={{ fontSize: 9, color: T.text2 }}>
-          <span style={{ opacity: 0.5 }}>@</span>{d.commit}
+          <span style={{ color: T.text1 }}>{d.author}</span>
+        </span>
+        <span style={{ fontSize: 9, color: T.text3 }}>·</span>
+        <span style={{ fontSize: 9, color: T.violet }}>{d.branch}</span>
+        <span style={{ fontSize: 9, color: T.text3 }}>·</span>
+        <span style={{ fontSize: 9, color: T.text2 }}>
+          <span style={{ color: T.text2 }}>@</span>
+          {d.commit}
         </span>
       </div>
 
       {/* Row 4: CI checks */}
-      <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
+      <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
         <CheckPill label="build" state={d.checks.build} />
         <CheckPill label="lint"  state={d.checks.lint}  />
         <CheckPill label="test"  state={d.checks.test}  />
       </div>
 
-      {/* Row 5: Resource bars (live only) */}
+      {/* Row 5: Resource bars (only when live) */}
       {d.status === "Live" && (
-        <div style={{
-          display: "flex", flexDirection: "column", gap: 6,
-          padding: "10px 12px",
-          background: `${T.bg0}60`,
-          border: `1px solid ${T.border0}`,
-          borderRadius: 4,
-        }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <span style={{ fontSize: 8, color: T.text2, width: 24, letterSpacing: "0.12em" }}>CPU</span>
-            <div style={{ flex: 1 }}><UsageBar value={d.cpu} max={100} color={T.cyan} /></div>
+            <span style={{ fontSize: 9, color: T.text2, width: 28 }}>CPU</span>
+            <div style={{ flex: 1 }}>
+              <UsageBar value={d.cpu} max={100} color={T.cyan} />
+            </div>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <span style={{ fontSize: 8, color: T.text2, width: 24, letterSpacing: "0.12em" }}>MEM</span>
-            <div style={{ flex: 1 }}><UsageBar value={d.mem} max={1024} color={T.violet} /></div>
+            <span style={{ fontSize: 9, color: T.text2, width: 28 }}>MEM</span>
+            <div style={{ flex: 1 }}>
+              <UsageBar value={d.mem} max={1024} color={T.violet} />
+            </div>
           </div>
         </div>
       )}
 
       {/* Row 6: Actions */}
-      <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+      <div style={{ display: "flex", gap: 6, alignItems: "center", paddingTop: 2 }}>
         {d.url && (
           <a
             href={d.url}
             target="_blank"
             rel="noreferrer"
-            onMouseEnter={() => setPreviewHovered(true)}
-            onMouseLeave={() => setPreviewHovered(false)}
             style={{
-              fontSize: 8, letterSpacing: "0.12em",
-              color: previewHovered ? T.bg0 : T.cyan,
-              background: previewHovered ? T.cyan : "transparent",
-              border: `1px solid ${T.cyan}40`,
-              borderRadius: 2,
-              padding: "4px 10px",
-              transition: "all 0.15s",
-              boxShadow: previewHovered ? `0 0 12px ${T.cyan}50` : "none",
+              fontSize: 9,
+              color: T.cyan,
+              letterSpacing: "0.08em",
+              border: `1px solid ${T.cyan}33`,
+              borderRadius: 3,
+              padding: "3px 8px",
+              textDecoration: "none",
+              transition: "background 0.12s",
             }}
+            onMouseEnter={e => (e.target.style.background = T.cyanDim)}
+            onMouseLeave={e => (e.target.style.background = "transparent")}
           >
             OPEN PREVIEW ↗
           </a>
         )}
         <button
           onClick={() => onTeardown(d.id)}
-          onMouseEnter={() => setTearHovered(true)}
-          onMouseLeave={() => setTearHovered(false)}
           style={{
-            fontSize: 8, letterSpacing: "0.12em",
-            color: tearHovered ? T.bg0 : T.red,
-            background: tearHovered ? T.red : "transparent",
-            border: `1px solid ${T.red}35`,
-            borderRadius: 2,
-            padding: "4px 10px",
+            fontSize: 9,
+            color: T.red,
+            letterSpacing: "0.08em",
+            background: "transparent",
+            border: `1px solid ${T.red}33`,
+            borderRadius: 3,
+            padding: "3px 8px",
             cursor: "pointer",
-            transition: "all 0.15s",
-            boxShadow: tearHovered ? `0 0 12px ${T.red}50` : "none",
+            transition: "background 0.12s",
+            fontFamily: T.font,
           }}
+          onMouseEnter={e => (e.target.style.background = T.redDim)}
+          onMouseLeave={e => (e.target.style.background = "transparent")}
         >
           TEARDOWN
         </button>
@@ -444,143 +326,144 @@ function DeploymentCard({ d, onTeardown, index = 0 }) {
   );
 }
 
-/* ─── Top bar ────────────────────────────────────────────────────────────── */
+/* ─── Top navigation bar ─────────────────────────────────────────────────── */
 function TopBar({ liveCount, provCount, failedCount, lastSync, onRefresh }) {
   const [tick, setTick] = useState(0);
-  const [refreshHovered, setRefreshHovered] = useState(false);
-
   useEffect(() => {
     const t = setInterval(() => setTick(v => v + 1), 1000);
     return () => clearInterval(t);
   }, []);
+  const blink = tick % 2 === 0;
 
   return (
-    <header style={{
-      background: `linear-gradient(180deg, ${T.bg1}f0 0%, ${T.bg0}e0 100%)`,
-      backdropFilter: "blur(12px)",
-      borderBottom: `1px solid ${T.border1}`,
-      position: "sticky", top: 0, zIndex: 50,
-      padding: "0 28px",
-    }}>
-      {/* Top accent line — animated gradient */}
-      <div style={{
-        position: "absolute", top: 0, left: 0, right: 0, height: 1,
-        background: `linear-gradient(to right, transparent 0%, ${T.cyan}60 30%, ${T.emerald}60 60%, transparent 100%)`,
-      }} />
+    <header
+      style={{
+        borderBottom: `1px solid ${T.border}`,
+        background: T.bg0,
+        position: "sticky",
+        top: 0,
+        zIndex: 40,
+        padding: "0 24px",
+      }}
+    >
+      {/* Accent line */}
+      <div
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          height: 1,
+          background: `linear-gradient(to right, transparent, ${T.cyan}88, transparent)`,
+        }}
+      />
 
-      <div style={{
-        display: "flex", alignItems: "center",
-        justifyContent: "space-between", height: 56,
-      }}>
-        {/* Left: brand */}
-        <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
-          {/* Logo mark */}
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <div style={{ position: "relative", width: 22, height: 22 }}>
-              <div style={{
-                position: "absolute", inset: 0,
-                border: `1px solid ${T.cyan}50`, borderRadius: 4,
-                boxShadow: `0 0 12px ${T.cyan}30`,
-              }} />
-              <div style={{
-                position: "absolute", inset: 4,
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", height: 52 }}>
+        {/* Left: logo + title */}
+        <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <span
+              style={{
+                display: "inline-block",
+                width: 8,
+                height: 8,
+                borderRadius: 2,
                 background: T.cyan,
-                borderRadius: 1,
                 boxShadow: `0 0 8px ${T.cyan}`,
-              }} />
-            </div>
-            <div>
-              <div style={{
-                fontSize: 11, fontWeight: 600, letterSpacing: "0.2em",
-                color: T.text0,
-              }}>
-                PREVIEWOPS
-              </div>
-              <div style={{
-                fontSize: 7, letterSpacing: "0.16em", color: T.text2,
-                marginTop: 1,
-              }}>
-                DEPLOYMENT CONTROL
-              </div>
-            </div>
+              }}
+            />
+            <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.15em", color: T.text0 }}>
+              PREVIEWOPS
+            </span>
+            <span style={{ fontSize: 10, color: T.text3 }}>v2.4.1</span>
           </div>
 
-          {/* Divider */}
-          <div style={{ width: 1, height: 24, background: T.border2 }} />
+          <span style={{ color: T.border2, fontSize: 12 }}>|</span>
 
-          {/* Live counters */}
-          <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
+          {/* Status pills */}
+          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
             {liveCount > 0 && (
-              <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 9, color: T.cyan }}>
+              <span style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 9, color: T.cyan }}>
                 <PulseDot color={T.cyan} size={5} />
-                <span><span style={{ fontWeight: 600 }}>{liveCount}</span> live</span>
-              </div>
+                {liveCount} live
+              </span>
             )}
             {provCount > 0 && (
-              <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 9, color: T.amber }}>
+              <span style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 9, color: T.amber }}>
                 <PulseDot color={T.amber} size={5} />
-                <span><span style={{ fontWeight: 600 }}>{provCount}</span> building</span>
-              </div>
+                {provCount} building
+              </span>
             )}
             {failedCount > 0 && (
-              <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 9, color: T.red }}>
-                <span style={{ width: 5, height: 5, borderRadius: "50%", background: T.red, display: "inline-block", boxShadow: `0 0 5px ${T.red}` }} />
-                <span><span style={{ fontWeight: 600 }}>{failedCount}</span> failed</span>
-              </div>
+              <span style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 9, color: T.red }}>
+                <span style={{ width: 5, height: 5, borderRadius: "50%", background: T.red, display: "inline-block" }} />
+                {failedCount} failed
+              </span>
             )}
           </div>
         </div>
 
-        {/* Right: cluster + sync + refresh */}
-        <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-          {/* Cluster badge */}
-          <div style={{
-            display: "flex", alignItems: "center", gap: 8,
-            padding: "4px 12px",
-            background: T.bg2,
-            border: `1px solid ${T.border1}`,
-            borderRadius: 3,
-          }}>
-            <span style={{ fontSize: 7, letterSpacing: "0.14em", color: T.text2 }}>CLUSTER</span>
-            <span style={{ fontSize: 9, color: T.text1, letterSpacing: "0.06em" }}>prod-k8s-us-east-1</span>
+        {/* Right: cluster info + controls */}
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <div style={{ fontSize: 9, color: T.text2, letterSpacing: "0.06em" }}>
+            <span style={{ color: T.text3 }}>cluster</span>{" "}
+            <span style={{ color: T.text1 }}>prod-k8s-us-east-1</span>
           </div>
 
-          {/* Jenkins status dot */}
-          <div style={{
-            display: "flex", alignItems: "center", gap: 6, fontSize: 9,
-            color: T.text1, letterSpacing: "0.08em",
-          }}>
-            <span style={{
-              display: "inline-block", width: 5, height: 5,
-              borderRadius: "50%", background: T.cyan,
-              boxShadow: `0 0 8px ${T.cyan}`,
-            }} />
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 5,
+              fontSize: 9,
+              color: T.cyan,
+              border: `1px solid ${T.cyan}33`,
+              borderRadius: 3,
+              padding: "3px 8px",
+            }}
+          >
+            <span
+              style={{
+                width: 5, height: 5, borderRadius: "50%",
+                background: T.cyan,
+                display: "inline-block",
+              }}
+            />
             Jenkins
           </div>
 
-          {/* Sync timestamp */}
-          <span style={{ fontSize: 8, color: T.text2, letterSpacing: "0.08em" }}>
+          <span style={{ fontSize: 9, color: T.text2 }}>
             {lastSync}
-            <span style={{ animation: "blink-cursor 1s step-end infinite", color: T.cyan, marginLeft: 2 }}>▌</span>
+            <span
+              style={{
+                display: "inline-block",
+                width: 6,
+                marginLeft: 2,
+                opacity: blink ? 1 : 0,
+                color: T.cyan,
+              }}
+            >
+              ▌
+            </span>
           </span>
 
-          {/* Refresh button */}
           <button
             onClick={onRefresh}
-            onMouseEnter={() => setRefreshHovered(true)}
-            onMouseLeave={() => setRefreshHovered(false)}
             style={{
-              fontSize: 8, fontWeight: 600, letterSpacing: "0.16em",
-              color: refreshHovered ? T.bg0 : T.cyan,
-              background: refreshHovered
-                ? `linear-gradient(135deg, ${T.cyan}, ${T.emerald})`
-                : "transparent",
-              border: `1px solid ${T.cyan}50`,
-              borderRadius: 3, padding: "6px 14px",
+              fontSize: 9,
+              fontWeight: 600,
+              letterSpacing: "0.12em",
+              color: T.bg0,
+              background: T.cyan,
+              border: "none",
+              borderRadius: 3,
+              padding: "5px 12px",
               cursor: "pointer",
-              transition: "all 0.18s",
-              boxShadow: refreshHovered ? `0 0 16px ${T.cyan}50` : "none",
+              fontFamily: T.font,
+              transition: "opacity 0.15s",
             }}
+            onMouseEnter={e => (e.target.style.opacity = "0.85")}
+            onMouseLeave={e => (e.target.style.opacity = "1")}
           >
             ↺ REFRESH
           </button>
@@ -593,86 +476,51 @@ function TopBar({ liveCount, provCount, failedCount, lastSync, onRefresh }) {
 /* ─── Filter bar ─────────────────────────────────────────────────────────── */
 function FilterBar({ query, onQuery, filter, onFilter, total }) {
   const opts = ["ALL", "LIVE", "PROVISIONING", "FAILED"];
-  const [focused, setFocused] = useState(false);
-
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 18 }}>
-      <div style={{ position: "relative", flex: 1 }}>
-        <span style={{
-          position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)",
-          fontSize: 9, color: focused ? T.cyan : T.text2, transition: "color 0.15s",
-          pointerEvents: "none",
-        }}>
-          ⌕
-        </span>
-        <input
-          value={query}
-          onChange={e => onQuery(e.target.value)}
-          placeholder="filter by pr / author / branch…"
-          onFocus={() => setFocused(true)}
-          onBlur={() => setFocused(false)}
-          style={{
-            width: "100%",
-            fontSize: 10, letterSpacing: "0.04em",
-            background: focused ? T.bg3 : T.bg2,
-            border: `1px solid ${focused ? T.cyan + "55" : T.border1}`,
-            borderRadius: 4, padding: "8px 12px 8px 26px",
-            color: T.text0, fontFamily: T.font,
-            outline: "none",
-            transition: "border-color 0.15s, background 0.15s",
-            boxShadow: focused ? `0 0 0 3px ${T.cyan}10` : "none",
-          }}
-        />
-      </div>
-
+    <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
+      <input
+        value={query}
+        onChange={e => onQuery(e.target.value)}
+        placeholder="filter by pr / author / branch…"
+        style={{
+          flex: 1,
+          fontSize: 10,
+          background: T.bg1,
+          border: `1px solid ${T.border}`,
+          borderRadius: 4,
+          padding: "7px 12px",
+          color: T.text0,
+          fontFamily: T.font,
+          outline: "none",
+        }}
+        onFocus={e => (e.target.style.borderColor = T.cyan + "88")}
+        onBlur={e => (e.target.style.borderColor = T.border)}
+      />
       <div style={{ display: "flex", gap: 3 }}>
-        {opts.map(o => {
-          const active = filter === o;
-          return (
-            <button
-              key={o}
-              onClick={() => onFilter(o)}
-              style={{
-                fontSize: 8, letterSpacing: "0.14em", padding: "6px 12px",
-                borderRadius: 3,
-                border: `1px solid ${active ? T.cyan + "55" : T.border1}`,
-                background: active ? T.cyanDim : "transparent",
-                color: active ? T.cyan : T.text2,
-                cursor: "pointer",
-                transition: "all 0.12s",
-                boxShadow: active ? `0 0 10px ${T.cyan}20` : "none",
-              }}
-            >
-              {o}
-            </button>
-          );
-        })}
+        {opts.map(o => (
+          <button
+            key={o}
+            onClick={() => onFilter(o)}
+            style={{
+              fontSize: 9,
+              letterSpacing: "0.1em",
+              padding: "5px 10px",
+              borderRadius: 3,
+              border: `1px solid ${filter === o ? T.cyan + "55" : T.border}`,
+              background: filter === o ? T.cyanDim : "transparent",
+              color: filter === o ? T.cyan : T.text2,
+              cursor: "pointer",
+              fontFamily: T.font,
+              transition: "all 0.12s",
+            }}
+          >
+            {o}
+          </button>
+        ))}
       </div>
-
-      <span style={{ fontSize: 8, color: T.text2, letterSpacing: "0.12em", whiteSpace: "nowrap", minWidth: 52 }}>
-        {total} <span style={{ color: T.text3 }}>env{total !== 1 ? "s" : ""}</span>
+      <span style={{ fontSize: 9, color: T.text2, whiteSpace: "nowrap" }}>
+        {total} env{total !== 1 ? "s" : ""}
       </span>
-    </div>
-  );
-}
-
-/* ─── Section header ─────────────────────────────────────────────────────── */
-function SectionHeader({ label, right }) {
-  return (
-    <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 16 }}>
-      <div style={{
-        fontSize: 7, letterSpacing: "0.26em", color: T.text2, fontWeight: 600,
-        whiteSpace: "nowrap",
-      }}>
-        {label}
-      </div>
-      <div style={{
-        flex: 1, height: 1,
-        background: `linear-gradient(to right, ${T.border1}, transparent)`,
-      }} />
-      {right && (
-        <div style={{ fontSize: 8, color: T.text3, letterSpacing: "0.1em" }}>{right}</div>
-      )}
     </div>
   );
 }
@@ -683,11 +531,11 @@ export default function DashboardView() {
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState("ALL");
 
-  const liveCount   = deployments.filter(d => d.status === "Live").length;
-  const provCount   = deployments.filter(d => d.status === "Provisioning").length;
-  const failedCount = deployments.filter(d => d.status === "Failed").length;
-  const totalCpu    = deployments.filter(d => d.status === "Live").reduce((a, d) => a + d.cpu, 0);
-  const totalMem    = deployments.filter(d => d.status === "Live").reduce((a, d) => a + d.mem, 0);
+  const liveCount     = deployments.filter(d => d.status === "Live").length;
+  const provCount     = deployments.filter(d => d.status === "Provisioning").length;
+  const failedCount   = deployments.filter(d => d.status === "Failed").length;
+  const totalCpu      = deployments.filter(d => d.status === "Live").reduce((a, d) => a + d.cpu, 0);
+  const totalMem      = deployments.filter(d => d.status === "Live").reduce((a, d) => a + d.mem, 0);
 
   const filtered = deployments.filter(d => {
     const q = query.toLowerCase();
@@ -700,38 +548,42 @@ export default function DashboardView() {
   return (
     <>
       <FontLink />
-      <GlobalStyles />
+      <style>{`
+        * { box-sizing: border-box; }
+        @keyframes ping {
+          0%   { transform: scale(1);   opacity: 0.4; }
+          75%  { transform: scale(2.2); opacity: 0; }
+          100% { transform: scale(2.2); opacity: 0; }
+        }
+        body { margin: 0; }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: ${T.bg0}; }
+        ::-webkit-scrollbar-thumb { background: ${T.border2}; border-radius: 2px; }
+        a { text-decoration: none; }
+        button { font-family: inherit; }
+        input::placeholder { color: ${T.text3}; }
+      `}</style>
 
-      <div style={{
-        minHeight: "100vh",
-        background: T.bg0,
-        fontFamily: T.font,
-        color: T.text0,
-        position: "relative",
-      }}>
-        {/* ── Background: dot grid ─────────────────── */}
-        <div style={{
-          position: "fixed", inset: 0, pointerEvents: "none", zIndex: 0,
-          backgroundImage: `radial-gradient(circle, ${T.border1} 1px, transparent 1px)`,
-          backgroundSize: "32px 32px",
-          opacity: 0.45,
-        }} />
-
-        {/* ── Background: radial gradient centre glow ── */}
-        <div style={{
-          position: "fixed", inset: 0, pointerEvents: "none", zIndex: 0,
-          background: `radial-gradient(ellipse 70% 50% at 50% 0%, ${T.cyan}08 0%, transparent 70%)`,
-        }} />
-
-        {/* ── Scanline sweep ─── */}
-        <div style={{
-          position: "fixed", left: 0, right: 0,
-          height: "2px",
-          background: `linear-gradient(to bottom, transparent, ${T.cyan}15, transparent)`,
-          zIndex: 0, pointerEvents: "none",
-          animation: "scanline 8s linear infinite",
-          opacity: 0.6,
-        }} />
+      <div
+        style={{
+          minHeight: "100vh",
+          background: T.bg0,
+          fontFamily: T.font,
+          color: T.text0,
+          position: "relative",
+        }}
+      >
+        {/* Subtle dot-grid overlay */}
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            pointerEvents: "none",
+            backgroundImage: `radial-gradient(circle, ${T.border}55 1px, transparent 1px)`,
+            backgroundSize: "28px 28px",
+            opacity: 0.4,
+          }}
+        />
 
         <TopBar
           liveCount={liveCount}
@@ -741,89 +593,129 @@ export default function DashboardView() {
           onRefresh={handleRefresh}
         />
 
-        <main style={{
-          position: "relative", zIndex: 1,
-          maxWidth: 1320, margin: "0 auto",
-          padding: "32px 28px",
-        }}>
+        <main style={{ position: "relative", zIndex: 1, maxWidth: 1280, margin: "0 auto", padding: "28px 24px" }}>
 
-          {/* ── Metrics ─────────────────────────────── */}
-          <SectionHeader label="SYSTEM OVERVIEW" right={`${deployments.length} TOTAL ENVIRONMENTS`} />
-          <div style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(152px, 1fr))",
-            gap: 8, marginBottom: 36,
-          }}>
-            <MetricTile label="LIVE ENVIRONMENTS" value={liveCount} sub={`of ${deployments.length} total`} accent={T.cyan}    index={0} />
-            <MetricTile label="PROVISIONING"      value={provCount}                                        accent={T.amber}   index={1} />
-            <MetricTile label="FAILED"            value={failedCount}                                      accent={failedCount > 0 ? T.red : T.text2} index={2} />
-            <MetricTile label="AVG CPU LOAD"      value={liveCount ? `${Math.round(totalCpu / liveCount)}%` : "—"} sub="across live pods" accent={T.violet} index={3} />
-            <MetricTile label="TOTAL MEMORY"      value={totalMem ? `${totalMem} MB` : "—"}               sub="live pods"     accent={T.violet}  index={4} />
+          {/* ── Metrics row ─────────────────────────────────── */}
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
+              gap: 10,
+              marginBottom: 28,
+            }}
+          >
+            <MetricTile
+              label="LIVE ENVIRONMENTS"
+              value={liveCount}
+              sub={`of ${deployments.length} total`}
+              accent={T.cyan}
+            />
+            <MetricTile
+              label="PROVISIONING"
+              value={provCount}
+              accent={T.amber}
+            />
+            <MetricTile
+              label="FAILED"
+              value={failedCount}
+              accent={failedCount > 0 ? T.red : T.text2}
+            />
+            <MetricTile
+              label="AVG CPU LOAD"
+              value={liveCount ? `${Math.round(totalCpu / liveCount)}%` : "—"}
+              sub="across live pods"
+              accent={T.violet}
+            />
+            <MetricTile
+              label="TOTAL MEMORY"
+              value={totalMem ? `${totalMem} MB` : "—"}
+              sub="live pods"
+              accent={T.violet}
+            />
           </div>
 
-          {/* ── PR Environments ─────────────────────── */}
-          <SectionHeader
-            label="PULL REQUEST ENVIRONMENTS"
-            right="kubernetes · jenkins · github"
-          />
+          {/* ── Section header ──────────────────────────────── */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 12,
+              marginBottom: 14,
+            }}
+          >
+            <div
+              style={{
+                fontSize: 9,
+                letterSpacing: "0.2em",
+                color: T.text2,
+                fontWeight: 600,
+              }}
+            >
+              PULL REQUEST ENVIRONMENTS
+            </div>
+            <div style={{ flex: 1, height: 1, background: T.border }} />
+            <div style={{ fontSize: 9, color: T.text3 }}>
+              kubernetes · jenkins · github
+            </div>
+          </div>
 
+          {/* ── Filter bar ──────────────────────────────────── */}
           <FilterBar
-            query={query} onQuery={setQuery}
-            filter={filter} onFilter={setFilter}
+            query={query}
+            onQuery={setQuery}
+            filter={filter}
+            onFilter={setFilter}
             total={filtered.length}
           />
 
-          {/* ── Cards grid ──────────────────────────── */}
+          {/* ── Cards grid ──────────────────────────────────── */}
           {filtered.length > 0 ? (
-            <div style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fill, minmax(330px, 1fr))",
-              gap: 10,
-            }}>
-              {filtered.map((d, i) => (
-                <DeploymentCard key={d.id} d={d} onTeardown={handleTeardown} index={i} />
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))",
+                gap: 10,
+              }}
+            >
+              {filtered.map(d => (
+                <DeploymentCard key={d.id} d={d} onTeardown={handleTeardown} />
               ))}
             </div>
           ) : (
-            <div style={{
-              display: "flex", flexDirection: "column", alignItems: "center",
-              justifyContent: "center", padding: "72px 0",
-              color: T.text2,
-            }}>
-              <div style={{
-                width: 40, height: 40, borderRadius: 6,
-                border: `1px solid ${T.border2}`, marginBottom: 16,
-                display: "flex", alignItems: "center", justifyContent: "center",
-                fontSize: 18, opacity: 0.3,
-              }}>
-                □
-              </div>
-              <div style={{ fontSize: 10, letterSpacing: "0.1em" }}>
-                no environments match your filter
-              </div>
+            <div
+              style={{
+                textAlign: "center",
+                padding: "64px 0",
+                color: T.text2,
+                fontSize: 11,
+              }}
+            >
+              <div style={{ fontSize: 28, marginBottom: 12, opacity: 0.3 }}>□</div>
+              no environments match your filter
             </div>
           )}
 
-          {/* ── Footer ──────────────────────────────── */}
-          <footer style={{
-            marginTop: 48, paddingTop: 18,
-            borderTop: `1px solid ${T.border1}`,
-            display: "flex", alignItems: "center", justifyContent: "space-between",
-            fontSize: 8, color: T.text2, letterSpacing: "0.1em",
-          }}>
-            <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
-              <span>
-                PreviewOps <span style={{ color: T.text3 }}>v2.4.1</span>
-              </span>
+          {/* ── Footer ──────────────────────────────────────── */}
+          <footer
+            style={{
+              marginTop: 40,
+              paddingTop: 16,
+              borderTop: `1px solid ${T.border}`,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              fontSize: 9,
+              color: T.text2,
+              letterSpacing: "0.08em",
+            }}
+          >
+            <div style={{ display: "flex", gap: 16 }}>
+              <span>PreviewOps <span style={{ color: T.text3 }}>v2.4.1</span></span>
               <span style={{ color: T.text3 }}>·</span>
-              <span style={{ color: T.text2 }}>prod-k8s-us-east-1</span>
+              <span>prod-k8s-us-east-1</span>
             </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 6, color: T.cyan }}>
-              <span style={{
-                width: 5, height: 5, borderRadius: "50%",
-                background: T.cyan, display: "inline-block",
-                boxShadow: `0 0 8px ${T.cyan}`,
-              }} />
+            <div style={{ display: "flex", alignItems: "center", gap: 5, color: T.cyan }}>
+              <span style={{ width: 5, height: 5, borderRadius: "50%", background: T.cyan, display: "inline-block" }} />
               all systems operational
             </div>
           </footer>
