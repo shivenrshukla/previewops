@@ -113,11 +113,12 @@ export function usePreviews() {
       /** @type {PreviewEntry[]} */
       const data = await res.json();
 
-      // Attach the dynamically constructed preview URL client-side
-      // (Bridge API also returns it, but this gives the frontend control)
+      // Trust the backend's previewUrl — it correctly maps the namespace branch
+      // (e.g. master PR cards link to env-master.previewops.local, not env-development)
+      // Only fall back to client-side construction if the backend omitted it.
       const enriched = data.map((p) => ({
         ...p,
-        previewUrl: buildPreviewUrl(p.branch),
+        previewUrl: p.previewUrl ?? buildPreviewUrl(p.branch),
       }));
 
       setPreviews(enriched);

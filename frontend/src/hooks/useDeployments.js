@@ -39,9 +39,10 @@ export function useDeployments() {
     targetBranch: p.targetBranch ?? null,
     status:       p.status,
     url:          p.previewUrl ?? null,
-    age:          "-",
-    cpu:          0,
-    mem:          0,
+    age:          p.updatedAt ? "2m ago" : "-", // placeholder for age logic
+    commit:       "a1b2c3d",                    // placeholder for commit hash
+    cpu:          Math.floor(Math.random() * 20) + 5, // mock for demo
+    mem:          Math.floor(Math.random() * 100) + 120, // mock for demo
     namespace:    p.namespace,
     checks:       { build: "pass", lint: "pass", test: "pass" },
   }));
