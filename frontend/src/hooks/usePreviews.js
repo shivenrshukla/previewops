@@ -113,12 +113,23 @@ export function usePreviews() {
       /** @type {PreviewEntry[]} */
       const data = await res.json();
 
-      // Attach the dynamically constructed preview URL client-side
-      // (Bridge API also returns it, but this gives the frontend control)
-      const enriched = data.map((p) => ({
-        ...p,
-        previewUrl: buildPreviewUrl(p.branch),
-      }));
+      // Detect current branch from hostname (e.g. env-master.previewops.local -> master)
+      const host = window.location.hostname;
+      const match = host.match(/^env-(.+)\.previewops\.local$/);
+      const currentBranch = match ? match[1] : null;
+
+      // Filter and enrich
+      const enriched = data
+        .filter((p) => {
+          // If we can't detect a branch (e.g. localhost), show everything
+          if (!currentBranch) return true;
+          // Otherwise, only show environments relevant to this dashboard
+          return p.branch === currentBranch || p.targetBranch === currentBranch;
+        })
+        .map((p) => ({
+          ...p,
+          previewUrl: p.previewUrl ?? buildPreviewUrl(p.branch),
+        }));
 
       setPreviews(enriched);
       setLastFetched(new Date());
