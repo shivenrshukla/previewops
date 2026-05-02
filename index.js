@@ -38,6 +38,28 @@ app.get('/api/health', (_req, res) => {
 });
 
 /**
+ * GET /api/debug
+ * Shows raw K8s namespaces and GitHub PRs — use this to diagnose missing PR cards.
+ */
+app.get('/api/debug', async (_req, res) => {
+  try {
+    const [namespaces, { byHead, byBase }] = await Promise.all([
+      listPreviewNamespaces(),
+      fetchOpenPRs(),
+    ]);
+    res.json({
+      k8s_namespaces: namespaces,
+      github_prs_by_head: Object.fromEntries(byHead),
+      github_prs_by_base: Object.fromEntries(
+        [...byBase.entries()].map(([k, v]) => [k, v])
+      ),
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/**
  * GET /api/previews
  * Returns all active preview environments enriched with optional GitHub PR data.
  */
@@ -50,22 +72,46 @@ app.get('/api/previews', async (_req, res) => {
     ]);
 
     // K8s namespaces are the source of truth.
-    // Only show environments that have an active namespace — this ensures
-    // merged/closed PRs whose namespace has been deleted are removed from the UI.
+    // Only show environments that have an active namespace.
     const nsMap = new Map(namespaces.map(ns => [ns.branch, ns]));
 
-    const entries = await Promise.all(
-      Array.from(nsMap.keys()).map(async (branch) => {
-        const ns = nsMap.get(branch);
-        const gh = prMap.get(branch);
+    // Destructure the two PR indexes returned by fetchOpenPRs
+    const { byHead, byBase } = prMap;
 
-        const status = await getNamespaceStatus(ns.namespace);
+    const template = process.env.PREVIEW_URL_TEMPLATE || 'http://env-{branch}.previewops.local';
 
-        // Preview URL matches the Ingress host pattern
-        const template   = process.env.PREVIEW_URL_TEMPLATE || 'http://env-{branch}.previewops.local';
-        const previewUrl = template.replace('{branch}', branch);
+    const allEntries = [];
 
-        return {
+    for (const [branch, ns] of nsMap) {
+      const status     = await getNamespaceStatus(ns.namespace);
+      const previewUrl = template.replace('{branch}', branch);
+
+      // Check if any open PRs are TARGETING this branch (e.g. dev → master)
+      const incomingPRs = byBase.get(branch) || [];
+
+      if (incomingPRs.length > 0) {
+        // Expand into one card per incoming PR (master shows all open PRs at a glance)
+        for (const gh of incomingPRs) {
+          allEntries.push({
+            prNumber:    gh.prNumber,
+            title:       gh.title,
+            displayName: gh.title,
+            previewLabel: `View on ${branch}`,
+            author:      gh.author,
+            branch:      gh.branch,      // the PR's source branch
+            targetBranch: branch,        // the namespace branch (master)
+            status,
+            previewUrl:  status === 'Live' ? previewUrl : null,
+            namespace:   ns.namespace,
+            hasK8s:      true,
+            updatedAt:   gh.updatedAt ?? ns.createdAt ?? new Date().toISOString(),
+            prUrl:       gh.prUrl ?? null,
+          });
+        }
+      } else {
+        // Feature branch or standalone branch (no PRs targeting it)
+        const gh = byHead.get(branch);
+        allEntries.push({
           prNumber:    gh?.prNumber  ?? null,
           title:       gh?.title     ?? `Branch: ${branch}`,
           displayName: gh?.title     ?? `Internal Environment: ${branch}`,
@@ -78,15 +124,13 @@ app.get('/api/previews', async (_req, res) => {
           hasK8s:      true,
           updatedAt:   gh?.updatedAt ?? ns?.createdAt ?? new Date().toISOString(),
           prUrl:       gh?.prUrl     ?? null,
-        };
-      })
-    );
+        });
+      }
+    }
 
-    // Filter out any Destroyed environments — their namespace was removed mid-poll
-    const active = entries.filter(e => e.status !== 'Destroyed');
-
-    // Sort: Live first, then Provisioning, then others
-    const ORDER = { Live: 0, Provisioning: 1, Pending: 2, 'Tearing Down...': 3 };
+    // Filter out Destroyed environments and sort
+    const active = allEntries.filter(e => e.status !== 'Destroyed');
+    const ORDER  = { Live: 0, Provisioning: 1, Pending: 2, 'Tearing Down...': 3 };
     active.sort((a, b) => (ORDER[a.status] ?? 9) - (ORDER[b.status] ?? 9));
 
     res.json(active);

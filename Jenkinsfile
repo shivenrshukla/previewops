@@ -4,7 +4,9 @@ pipeline {
         AWS_ACCOUNT_ID = '885232248552' // Find this in the top right of AWS Console
         AWS_REGION     = 'eu-north-1'
         ECR_REPO_NAME  = 'previewops-backend' // The name of the repo you created earlier
-        NAMESPACE      = "preview-env-${env.BRANCH_NAME}"
+
+        CLEAN_ID       = "${env.BRANCH_NAME.toLowerCase().replaceAll(' ', '-')}"
+        NAMESPACE      = "preview-env-${CLEAN_ID}"
     }
     stages {
         stage('Build Frontend') {
@@ -54,7 +56,7 @@ pipeline {
                     sh "sed -i 's|IMAGE_TAG|${fullImageName}|g' k8s/deployment.yaml"
 
                     // 5. Inject the Dynamic URL Route into Ingress YAMLs
-                    sh "sed -i 's|DYNAMIC_ENV|${env.BRANCH_NAME}|g' k8s/ingress.yaml"
+                    sh "sed -i 's|DYNAMIC_ENV|${CLEAN_ID}|g' k8s/ingress.yaml"
 
                     // 6. Deploy
                     sh "kubectl apply -f k8s/deployment.yaml -n ${NAMESPACE}"

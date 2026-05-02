@@ -39,8 +39,9 @@ async function githubFetch(path) {
 }
 
 /**
- * Fetches all open PRs for the configured repo and returns them
- * indexed by branch name for O(1) lookup when enriching namespace data.
+ * Fetches all open PRs for the configured repo and returns two indexes:
+ *  - byHead: branch name of the PR source  → PR data  (for feature/dev branch cards)
+ *  - byBase: branch name of the PR target  → PR[]      (for master/main branch cards)
  */
 export async function fetchOpenPRs() {
   const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
@@ -49,23 +50,35 @@ export async function fetchOpenPRs() {
   if (!GITHUB_TOKEN || !GITHUB_REPO) {
     if (!GITHUB_TOKEN) console.warn('[github-client] GITHUB_TOKEN not set — skipping PR enrichment.');
     if (!GITHUB_REPO)  console.warn('[github-client] GITHUB_REPO not set — skipping PR enrichment.');
-    return new Map();
+    return { byHead: new Map(), byBase: new Map() };
   }
 
   const prs = await githubFetch(`/repos/${GITHUB_REPO}/pulls?state=open&per_page=100`);
-  if (!prs) return new Map();
+  if (!prs) return { byHead: new Map(), byBase: new Map() };
 
-  return new Map(
-    prs.map((pr) => [
-      pr.head.ref,
-      {
-        prNumber:  pr.number,
-        title:     pr.title,
-        author:    pr.user.login,
-        branch:    pr.head.ref,
-        prUrl:     pr.html_url,
-        updatedAt: pr.updated_at,
-      },
-    ])
-  );
+  const byHead = new Map();
+  const byBase = new Map();
+
+  for (const pr of prs) {
+    const entry = {
+      prNumber:  pr.number,
+      title:     pr.title,
+      author:    pr.user.login,
+      branch:    pr.head.ref,
+      baseBranch: pr.base.ref,
+      prUrl:     pr.html_url,
+      updatedAt: pr.updated_at,
+    };
+
+    // Index by head branch (source) — used by feature/dev branch namespace cards
+    byHead.set(pr.head.ref, entry);
+
+    // Index by base branch (target) — used by master/main namespace cards
+    if (!byBase.has(pr.base.ref)) {
+      byBase.set(pr.base.ref, []);
+    }
+    byBase.get(pr.base.ref).push(entry);
+  }
+
+  return { byHead, byBase };
 }
