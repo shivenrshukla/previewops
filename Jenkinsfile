@@ -56,7 +56,7 @@ pipeline {
                     sh "sed -i 's|IMAGE_TAG|${fullImageName}|g' k8s/deployment.yaml"
 
                     // 5. Inject the Dynamic URL Route into Ingress YAMLs
-                    sh "sed -i 's|DYNAMIC_ENV|${env.BRANCH_NAME}|g' k8s/ingress.yaml"
+                    sh "sed -i 's|DYNAMIC_ENV|${CLEAN_ID}|g' k8s/ingress.yaml"
 
                     // 6. Deploy
                     sh "kubectl apply -f k8s/deployment.yaml -n ${NAMESPACE}"
