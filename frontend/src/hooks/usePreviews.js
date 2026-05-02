@@ -113,13 +113,23 @@ export function usePreviews() {
       /** @type {PreviewEntry[]} */
       const data = await res.json();
 
-      // Trust the backend's previewUrl — it correctly maps the namespace branch
-      // (e.g. master PR cards link to env-master.previewops.local, not env-development)
-      // Only fall back to client-side construction if the backend omitted it.
-      const enriched = data.map((p) => ({
-        ...p,
-        previewUrl: p.previewUrl ?? buildPreviewUrl(p.branch),
-      }));
+      // Detect current branch from hostname (e.g. env-master.previewops.local -> master)
+      const host = window.location.hostname;
+      const match = host.match(/^env-(.+)\.previewops\.local$/);
+      const currentBranch = match ? match[1] : null;
+
+      // Filter and enrich
+      const enriched = data
+        .filter((p) => {
+          // If we can't detect a branch (e.g. localhost), show everything
+          if (!currentBranch) return true;
+          // Otherwise, only show environments relevant to this dashboard
+          return p.branch === currentBranch || p.targetBranch === currentBranch;
+        })
+        .map((p) => ({
+          ...p,
+          previewUrl: p.previewUrl ?? buildPreviewUrl(p.branch),
+        }));
 
       setPreviews(enriched);
       setLastFetched(new Date());

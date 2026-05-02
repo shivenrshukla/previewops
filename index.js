@@ -126,6 +126,7 @@ app.get('/api/previews', async (_req, res) => {
           hasK8s:      true,
           updatedAt:   gh?.updatedAt ?? ns?.createdAt ?? new Date().toISOString(),
           prUrl:       gh?.prUrl     ?? null,
+          targetBranch: null,
         });
       }
     }
