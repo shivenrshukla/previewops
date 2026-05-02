@@ -17,38 +17,38 @@ const FontLink = () => (
 
 /* ─── Design tokens ──────────────────────────────────────────────────────── */
 const T = {
-  // Backgrounds — Deep Red / Maroon theme
-  bg0:      "#0d0202",   // abyssal red
-  bg1:      "#1a0505",   // dark maroon
-  bg2:      "#260808",   // card base
-  bg3:      "#330b0b",   // card elevated
-  bg4:      "#400d0d",   // hover surface
+  // Backgrounds — layered depth
+  bg0:      "#02060f",   // void
+  bg1:      "#060d1a",   // base
+  bg2:      "#091221",   // card
+  bg3:      "#0d1829",   // elevated card
+  bg4:      "#112035",   // hover surface
 
   // Borders
-  border0:  "#1a0505",   // hairline
-  border1:  "#400d0d",   // default
-  border2:  "#661515",   // emphasis
-  border3:  "#8c1c1c",   // active
+  border0:  "#0d1e33",   // hairline
+  border1:  "#132840",   // default
+  border2:  "#1e3d5c",   // emphasis
+  border3:  "#2a5278",   // active
 
-  // Accents — White for visibility
-  cyan:     "#ffffff",   // white text
-  cyanMid:  "#f0f0f0",
-  cyanDim:  "#400000",   // deep red backing
-  cyanGlow: "#ffffff20",
+  // Accents
+  cyan:     "#00e5c3",   // primary — electric teal
+  cyanMid:  "#00b89a",
+  cyanDim:  "#002e26",
+  cyanGlow: "#00e5c320",
 
-  emerald:  "#ff6b6b",   // soft red
-  amber:    "#ffca3a",   // keeping amber for warnings
+  emerald:  "#00d97e",   // secondary green
+  amber:    "#ffb020",   // warning
   amberDim: "#2a1a00",
-  red:      "#ff4c4c",   // error red
+  red:      "#ff4c4c",   // error
   redDim:   "#2a0000",
-  violet:   "#ff8080",   // light red
-  violetDim:"#400000",
+  violet:   "#9d8cff",   // info / metric
+  violetDim:"#1a1540",
 
-  // Text — White focus
-  text0:    "#ffffff",   // primary white
-  text1:    "#ffb3b3",   // secondary (light pinkish red)
-  text2:    "#8c4040",   // muted red
-  text3:    "#4d0a0a",   // decorative dark red
+  // Text
+  text0:    "#dde8f5",   // primary
+  text1:    "#7a9ab8",   // secondary
+  text2:    "#3d5a78",   // muted
+  text3:    "#1f3349",   // decorative
 
   font:     `'IBM Plex Mono', 'Courier New', monospace`,
 };
