@@ -40,7 +40,7 @@ async function githubFetch(path) {
 
 /**
  * Fetches all open PRs for the configured repo and returns them
- * indexed by PR number for O(1) lookup when enriching namespace data.
+ * indexed by branch name for O(1) lookup when enriching namespace data.
  */
 export async function fetchOpenPRs() {
   const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
@@ -57,7 +57,7 @@ export async function fetchOpenPRs() {
 
   return new Map(
     prs.map((pr) => [
-      pr.number,
+      pr.head.ref,
       {
         prNumber:  pr.number,
         title:     pr.title,

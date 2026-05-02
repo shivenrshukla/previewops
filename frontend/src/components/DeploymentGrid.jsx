@@ -22,7 +22,7 @@ export default function DeploymentGrid({ deployments, onTeardown }) {
     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
       {deployments.map((dep) => (
         <DeploymentCard
-          key={dep.prNumber}
+          key={dep.branch}
           deployment={dep}
           onTeardown={onTeardown}
         />

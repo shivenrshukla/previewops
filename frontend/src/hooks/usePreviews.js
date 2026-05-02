@@ -56,16 +56,16 @@ const BRIDGE_API_BASE = getDynamicApiBase();
 const POLL_INTERVAL_MS = 30_000;
 
 /**
- * Constructs the dynamic preview URL for a given PR number.
- * Matches your NGINX Ingress rule: http://env-{ID}.previewops.local
+ * Constructs the dynamic preview URL for a given branch name.
+ * Matches your NGINX Ingress rule: http://env-{branch}.previewops.local
  *
- * @param {number} prNumber
+ * @param {string} branch
  * @returns {string}
  */
-export function buildPreviewUrl(prNumber) {
+export function buildPreviewUrl(branch) {
   const base =
-    import.meta.env.VITE_PREVIEW_BASE_URL ?? "http://env-{id}.previewops.local";
-  return base.replace("{id}", prNumber);
+    import.meta.env.VITE_PREVIEW_BASE_URL ?? "http://env-{branch}.previewops.local";
+  return base.replace("{branch}", branch);
 }
 
 /**
@@ -92,9 +92,9 @@ export function buildPreviewUrl(prNumber) {
  * }}
  */
 export function usePreviews() {
-  const [previews, setPreviews]       = useState([]);
-  const [loading, setLoading]         = useState(true);
-  const [error, setError]             = useState(null);
+  const [previews, setPreviews] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [lastFetched, setLastFetched] = useState(null);
 
   // Stable ref so the interval callback always sees the latest fetch fn
@@ -117,7 +117,7 @@ export function usePreviews() {
       // (Bridge API also returns it, but this gives the frontend control)
       const enriched = data.map((p) => ({
         ...p,
-        previewUrl: buildPreviewUrl(p.prNumber),
+        previewUrl: buildPreviewUrl(p.branch),
       }));
 
       setPreviews(enriched);

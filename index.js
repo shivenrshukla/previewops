@@ -49,14 +49,14 @@ app.get('/api/previews', async (_req, res) => {
       fetchOpenPRs(),
     ]);
 
-    // Create a set of all build numbers we know about
-    const nsMap = new Map(namespaces.map(ns => [ns.buildNumber, ns]));
-    const allBuildNumbers = new Set([...nsMap.keys(), ...prMap.keys()]);
+    // Create a set of all branches we know about
+    const nsMap = new Map(namespaces.map(ns => [ns.branch, ns]));
+    const allBranches = new Set([...nsMap.keys(), ...prMap.keys()]);
 
     const entries = await Promise.all(
-      Array.from(allBuildNumbers).map(async (buildNumber) => {
-        const ns = nsMap.get(buildNumber);
-        const gh = prMap.get(buildNumber);
+      Array.from(allBranches).map(async (branch) => {
+        const ns = nsMap.get(branch);
+        const gh = prMap.get(branch);
         
         // If we have a namespace, get its status. Otherwise, it's "Pending" or "Destroyed"
         let status = 'Pending';
@@ -66,20 +66,20 @@ app.get('/api/previews', async (_req, res) => {
           status = 'Pending'; // PR exists but no K8s namespace yet
         }
 
-        // Preview URL matches the Ingress host pattern: defaults to env-{ID}.previewops.local
-        const template   = process.env.PREVIEW_URL_TEMPLATE || 'http://env-{id}.previewops.local';
-        const previewUrl = template.replace('{id}', buildNumber);
+        // Preview URL matches the Ingress host pattern: defaults to env-{branch}.previewops.local
+        const template   = process.env.PREVIEW_URL_TEMPLATE || 'http://env-{branch}.previewops.local';
+        const previewUrl = template.replace('{branch}', branch);
 
         return {
-          prNumber:   buildNumber,
-          title:      gh?.title     ?? `Preview #${buildNumber}`,
-          displayName: gh?.title    ?? `Internal Environment ${buildNumber}`,
+          prNumber:   gh?.prNumber  ?? null,
+          title:      gh?.title     ?? `Branch: ${branch}`,
+          displayName: gh?.title    ?? `Internal Environment: ${branch}`,
           previewLabel: `View Website Changes`,
           author:     gh?.author    ?? 'unknown',
-          branch:     gh?.branch    ?? `preview-env-${buildNumber}`,
+          branch:     branch,
           status,
           previewUrl: status === 'Live' ? previewUrl : null,
-          namespace:  ns?.namespace  ?? `preview-env-${buildNumber}`,
+          namespace:  ns?.namespace  ?? `preview-env-${branch}`,
           hasK8s:     !!ns,
           updatedAt:  gh?.updatedAt ?? ns?.createdAt ?? new Date().toISOString(),
           prUrl:      gh?.prUrl     ?? null,
