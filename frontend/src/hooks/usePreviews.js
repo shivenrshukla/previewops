@@ -123,8 +123,14 @@ export function usePreviews() {
         .filter((p) => {
           // If we can't detect a branch (e.g. localhost), show everything
           if (!currentBranch) return true;
-          // Otherwise, only show environments relevant to this dashboard
-          return p.branch === currentBranch || p.targetBranch === currentBranch;
+
+          // If this is a PR card (it has a target), only show it on the target dashboard
+          if (p.targetBranch) {
+            return p.targetBranch === currentBranch;
+          }
+
+          // Otherwise, it's a standalone branch environment; only show it on its own dashboard
+          return p.branch === currentBranch;
         })
         .map((p) => ({
           ...p,
