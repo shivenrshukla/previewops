@@ -102,7 +102,7 @@ app.get('/api/previews', async (_req, res) => {
             branch:      gh.branch,      // the PR's source branch
             targetBranch: branch,        // the namespace branch (master)
             status,
-            previewUrl:  status === 'Live' ? previewUrl : null,
+            previewUrl:  status === 'Live' ? template.replace('{branch}', gh.branch) : null,
             namespace:   ns.namespace,
             hasK8s:      true,
             updatedAt:   gh.updatedAt ?? ns.createdAt ?? new Date().toISOString(),
