@@ -4,7 +4,7 @@
  * electric-cyan on deep-navy, data-dense cards, animated indicators.
  */
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useDeployments } from "@/hooks/useDeployments";
 
 /* ─── Inline Google Font ─────────────────────────────────────────────────── */
