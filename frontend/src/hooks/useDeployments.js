@@ -31,11 +31,12 @@ export function useDeployments() {
 
   // Map PreviewEntry → Deployment shape expected by the UI components
   const deployments = previews.map((p) => ({
-    id:           p.branch,
+    id:           p.id ?? p.branch,     // unique ID from backend (e.g. "master:pr-13" or "development")
     pr:           p.prNumber ?? "-",
     title:        p.title    ?? `Branch: ${p.branch}`,
     author:       p.author,
     branch:       p.branch,
+    targetBranch: p.targetBranch ?? null,
     status:       p.status,
     url:          p.previewUrl ?? null,
     age:          "-",
