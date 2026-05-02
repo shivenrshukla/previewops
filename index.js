@@ -9,10 +9,12 @@ const __dirname  = dirname(__filename);
 dotenv.config({ path: join(__dirname, 'bridge-api', '.env') });
 
 import express from 'express';
+import cors from 'cors';
 import { listPreviewNamespaces, getNamespaceStatus } from './bridge-api/k8s-client.js';
 import { fetchOpenPRs } from './bridge-api/github-client.js';
 
 const app  = express();
+app.use(cors());
 const port = 3000;
 
 // ── Serve the built React dashboard ─────────────────────────────────────────

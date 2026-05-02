@@ -4,7 +4,7 @@
  * Handles teardown UI state: idle → loading spinner → destroyed (disabled).
  */
 
-import { GitPullRequest, ExternalLink, Trash2, Clock, User, GitBranch, DollarSign, Loader2, XCircle } from "lucide-react";
+import { GitPullRequest, ExternalLink, Trash2, Clock, User, GitBranch, DollarSign, Loader2, XCircle, Globe } from "lucide-react";
 import StatusBadge from "@/components/StatusBadge";
 import { STATUS_CONFIG, DISABLED_STATUSES } from "@/constants/statusConfig";
 

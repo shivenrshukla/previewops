@@ -57,14 +57,14 @@ const POLL_INTERVAL_MS = 30_000;
 
 /**
  * Constructs the dynamic preview URL for a given PR number.
- * Matches your NGINX Ingress rule: http://pr-{ID}.previewops.local
+ * Matches your NGINX Ingress rule: http://env-{ID}.previewops.local
  *
  * @param {number} prNumber
  * @returns {string}
  */
 export function buildPreviewUrl(prNumber) {
   const base =
-    import.meta.env.VITE_PREVIEW_BASE_URL ?? "http://pr-{id}.previewops.local";
+    import.meta.env.VITE_PREVIEW_BASE_URL ?? "http://env-{id}.previewops.local";
   return base.replace("{id}", prNumber);
 }
 
