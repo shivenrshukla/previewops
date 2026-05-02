@@ -13,7 +13,7 @@ const execFileAsync = promisify(execFile);
 
 // Namespace name pattern: defaults to preview-env-{ID}
 // Configurable via NAMESPACE_PATTERN env var (must include one capture group for the ID)
-const NS_PATTERN = new RegExp(process.env.NAMESPACE_PATTERN || '^preview-env-(\\d+)$');
+const NS_PATTERN = new RegExp(process.env.NAMESPACE_PATTERN || '^preview-env-(.+)$');
 
 /**
  * Maps Kubernetes pod phases to the frontend's DeploymentStatus type.
@@ -64,7 +64,7 @@ async function kubectl(args) {
 
 /**
  * Lists all active preview-env-* namespaces in the cluster.
- * @returns {Promise<Array<{namespace: string, buildNumber: number, createdAt: string}>>}
+ * @returns {Promise<Array<{namespace: string, branch: string, createdAt: string}>>}
  */
 export async function listPreviewNamespaces() {
   const result = await kubectl(['get', 'namespaces', '-o', 'json']);
@@ -74,7 +74,7 @@ export async function listPreviewNamespaces() {
     .filter((ns) => NS_PATTERN.test(ns.metadata.name))
     .map((ns) => ({
       namespace:   ns.metadata.name,
-      buildNumber: parseInt(NS_PATTERN.exec(ns.metadata.name)[1], 10),
+      branch:      NS_PATTERN.exec(ns.metadata.name)[1],
       createdAt:   ns.metadata.creationTimestamp ?? new Date().toISOString(),
     }));
 }

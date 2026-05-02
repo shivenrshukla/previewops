@@ -4,7 +4,7 @@ pipeline {
         AWS_ACCOUNT_ID = '885232248552' // Find this in the top right of AWS Console
         AWS_REGION     = 'eu-north-1'
         ECR_REPO_NAME  = 'previewops-backend' // The name of the repo you created earlier
-        NAMESPACE      = "preview-env-${env.BUILD_NUMBER}"
+        NAMESPACE      = "preview-env-${env.BRANCH_NAME}"
     }
     stages {
         stage('Build Frontend') {
@@ -20,7 +20,7 @@ pipeline {
             steps {
                 script {
                     def ecrUri = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
-                    def fullImageName = "${ecrUri}/${ECR_REPO_NAME}:${env.BUILD_NUMBER}"
+                    def fullImageName = "${ecrUri}/${ECR_REPO_NAME}:${env.BRANCH_NAME}"
                     
                     // Login, Build, and Push
                     sh "aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ecrUri}"
@@ -36,11 +36,11 @@ pipeline {
                     sh "kubectl create namespace ${NAMESPACE} --dry-run=client -o yaml | kubectl apply -f -"
                     
                     // 2. Inject the new Image Tag into our YAML file
-                    def fullImageName = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO_NAME}:${env.BUILD_NUMBER}"
+                    def fullImageName = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO_NAME}:${env.BRANCH_NAME}"
                     sh "sed -i 's|IMAGE_TAG|${fullImageName}|g' k8s/deployment.yaml"
                     
                     // 3. Inject the Dynamic URL Route into Ingress YAMLs
-                    sh "sed -i 's|DYNAMIC_ENV|${env.BUILD_NUMBER}|g' k8s/ingress.yaml"
+                    sh "sed -i 's|DYNAMIC_ENV|${env.BRANCH_NAME}|g' k8s/ingress.yaml"
                     
                     // 4. Deploy
                     sh "kubectl apply -f k8s/deployment.yaml -n ${NAMESPACE}"
@@ -49,21 +49,7 @@ pipeline {
                     
                     // 5. Wait for the URL
                     echo "Preview Environment is spinning up in namespace: ${NAMESPACE}"
-                    echo "Your dynamic URL will route via host: env-${env.BUILD_NUMBER}.previewops.local"
-                }
-            }
-        }
-        stage('Garbage Collection') {
-            steps {
-                script {
-                    // Calculate the previous build number
-                    def PREV_BUILD = env.BUILD_NUMBER.toInteger() - 1
-                    def OLD_NAMESPACE = "preview-env-${PREV_BUILD}"
-                    
-                    echo "🧹 Sweeping old environment: ${OLD_NAMESPACE}"
-                    
-                    // Delete the old namespace (ignore errors if it's already gone)
-                    sh "kubectl delete namespace ${OLD_NAMESPACE} --ignore-not-found=true"
+                    echo "Your dynamic URL will route via host: env-${env.BRANCH_NAME}.previewops.local"
                 }
             }
         }
