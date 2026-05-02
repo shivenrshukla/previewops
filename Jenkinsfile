@@ -20,7 +20,7 @@ pipeline {
             steps {
                 script {
                     def ecrUri = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
-                    def fullImageName = "${ecrUri}/${ECR_REPO_NAME}:${env.BRANCH_NAME}"
+                    def fullImageName = "${ecrUri}/${ECR_REPO_NAME}:${env.BRANCH_NAME}-${env.BUILD_NUMBER}"
                     
                     // Login, Build, and Push
                     sh "aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ecrUri}"
@@ -36,7 +36,7 @@ pipeline {
                     sh "kubectl create namespace ${NAMESPACE} --dry-run=client -o yaml | kubectl apply -f -"
                     
                     // 2. Inject the new Image Tag into our YAML file
-                    def fullImageName = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO_NAME}:${env.BRANCH_NAME}"
+                    def fullImageName = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO_NAME}:${env.BRANCH_NAME}-${env.BUILD_NUMBER}"
                     sh "sed -i 's|IMAGE_TAG|${fullImageName}|g' k8s/deployment.yaml"
                     
                     // 3. Inject the Dynamic URL Route into Ingress YAMLs
