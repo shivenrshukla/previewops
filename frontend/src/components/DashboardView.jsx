@@ -4,7 +4,7 @@
  * Renders the page chrome (header, footer) and composes child components.
  */
 
-import { Terminal, Zap, RefreshCw, CheckCircle2, Radio } from "lucide-react";
+import { Terminal, Zap, RefreshCw, CheckCircle2 } from "lucide-react";
 import MetricsHeader  from "@/components/MetricsHeader";
 import DeploymentGrid from "@/components/DeploymentGrid";
 import PreviewsTable  from "@/components/PreviewsTable";
@@ -14,7 +14,7 @@ export default function DashboardView() {
   const { deployments, handleTeardown, handleRefresh, lastSync } =
     useDeployments();
 
-  const liveCount         = deployments.filter((d) => d.status === "Live").length;
+  const liveCount        = deployments.filter((d) => d.status === "Live").length;
   const provisioningCount = deployments.filter(
     (d) => d.status === "Provisioning"
   ).length;
@@ -24,21 +24,12 @@ export default function DashboardView() {
       {/* Dot-grid texture */}
       <div className="fixed inset-0 bg-dot-grid pointer-events-none" />
 
-      {/* Ambient radial glow behind header */}
-      <div
-        className="fixed top-0 left-1/2 -translate-x-1/2 w-[700px] h-[340px] pointer-events-none"
-        style={{
-          background:
-            "radial-gradient(ellipse at 50% 0%, rgba(99,102,241,0.13) 0%, transparent 70%)",
-        }}
-      />
-
       {/* Top accent bar */}
       <div
         className="fixed top-0 left-0 right-0 h-px z-50 pointer-events-none"
         style={{
           background:
-            "linear-gradient(to right, transparent, #6366f1 35%, #a5b4fc 50%, #6366f1 65%, transparent)",
+            "linear-gradient(to right, transparent, #6366f1 40%, #818cf8 60%, transparent)",
         }}
       />
 
@@ -51,42 +42,31 @@ export default function DashboardView() {
             <div className="flex items-center gap-3 mb-2">
               <div
                 className="w-9 h-9 rounded-xl flex items-center justify-center
-                  ring-1 ring-indigo-500/30"
-                style={{
-                  background: "linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)",
-                  boxShadow: "0 0 18px rgba(99,102,241,0.45), 0 2px 8px rgba(0,0,0,0.4)",
-                }}
+                  shadow-lg shadow-indigo-600/30"
+                style={{ background: "#6366f1" }}
               >
-                <Terminal size={15} className="text-white/90" />
+                <Terminal size={16} className="text-white" />
               </div>
               <div>
-                <h1 className="text-lg font-bold tracking-tight leading-none text-white">
+                <h1 className="text-lg font-bold tracking-tight leading-none">
                   PreviewOps Control Center
                 </h1>
-                <p className="text-zinc-500 text-[11px] font-mono mt-0.5">
+                <p className="text-zinc-600 text-[11px] font-mono mt-0.5">
                   Kubernetes · Jenkins · GitHub PRs
                 </p>
               </div>
             </div>
 
             {/* Live / provisioning indicators */}
-            <div className="ml-12 flex items-center gap-2 flex-wrap">
+            <div className="ml-12 flex items-center gap-3 flex-wrap">
               {liveCount > 0 && (
-                <span
-                  className="flex items-center gap-1.5 text-emerald-400 text-[11px]
-                    font-mono px-2 py-0.5 rounded-full border border-emerald-500/20
-                    bg-emerald-500/[0.07]"
-                >
+                <span className="flex items-center gap-1.5 text-emerald-400 text-xs font-mono">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                   {liveCount} live
                 </span>
               )}
               {provisioningCount > 0 && (
-                <span
-                  className="flex items-center gap-1.5 text-amber-400 text-[11px]
-                    font-mono px-2 py-0.5 rounded-full border border-amber-500/20
-                    bg-amber-500/[0.07]"
-                >
+                <span className="flex items-center gap-1.5 text-amber-400 text-xs font-mono">
                   <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
                   {provisioningCount} provisioning
                 </span>
@@ -96,31 +76,21 @@ export default function DashboardView() {
 
           {/* Controls */}
           <div className="flex items-center gap-3 flex-shrink-0">
-            {/* Jenkins status pill */}
             <div
               className="flex items-center gap-2 px-3 py-1.5 rounded-lg
-                bg-zinc-900 border border-zinc-800 text-[11px] font-mono text-zinc-400
-                ring-1 ring-inset ring-white/[0.03]"
+                bg-zinc-900 border border-zinc-700/50 text-[11px] font-mono text-zinc-400"
             >
-              <Radio size={10} className="text-emerald-400" />
-              Jenkins
-              <span className="text-zinc-700">·</span>
-              <span className="text-emerald-400/80">Connected</span>
+              <Zap size={11} className="text-emerald-400" />
+              Jenkins · Connected
             </div>
-
             <button
               onClick={handleRefresh}
-              className="group flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold
-                text-white transition-all duration-200 active:scale-95"
-              style={{
-                background: "linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)",
-                boxShadow: "0 2px 12px rgba(99,102,241,0.35)",
-              }}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold
+                text-white transition-all duration-200 shadow-md shadow-indigo-600/20
+                active:scale-95 hover:brightness-110"
+              style={{ background: "#6366f1" }}
             >
-              <RefreshCw
-                size={12}
-                className="transition-transform duration-500 group-hover:rotate-180"
-              />
+              <RefreshCw size={13} />
               Refresh
             </button>
           </div>
@@ -135,7 +105,7 @@ export default function DashboardView() {
             Pull Request Environments
           </h2>
           <div className="flex items-center gap-2 text-[11px] text-zinc-600 font-mono">
-            <span className="text-zinc-500">{deployments.length} environments</span>
+            <span>{deployments.length} environments</span>
             <span className="text-zinc-700">·</span>
             <span>synced {lastSync}</span>
           </div>
@@ -147,13 +117,10 @@ export default function DashboardView() {
         {/* ── Divider ──────────────────────────────────────────── */}
         <div className="relative my-10">
           <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-zinc-800/50" />
+            <div className="w-full border-t border-zinc-800/60" />
           </div>
           <div className="relative flex justify-center">
-            <span
-              className="bg-zinc-950 px-4 text-[10px] font-mono text-zinc-600
-                uppercase tracking-widest"
-            >
+            <span className="bg-zinc-950 px-4 text-[10px] font-mono text-zinc-600 uppercase tracking-widest">
               Live GitHub Integration
             </span>
           </div>
@@ -164,20 +131,17 @@ export default function DashboardView() {
 
         {/* ── Footer ───────────────────────────────────────────── */}
         <footer
-          className="mt-10 pt-5 border-t border-zinc-800/50
+          className="mt-10 pt-5 border-t border-zinc-800/60
             flex flex-col sm:flex-row items-start sm:items-center
-            justify-between gap-3 text-[11px] text-zinc-600 font-mono"
+            justify-between gap-2 text-[11px] text-zinc-600 font-mono"
         >
-          <div className="flex items-center gap-3">
-            <span className="text-zinc-500">PreviewOps v2.4.1</span>
-            <span className="text-zinc-800">·</span>
-            <span>prod-k8s-us-east-1</span>
+          <div className="flex items-center gap-4">
+            <span>PreviewOps v2.4.1</span>
+            <span className="text-zinc-700">·</span>
+            <span>Cluster: prod-k8s-us-east-1</span>
           </div>
-          <div
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded-full
-              border border-emerald-900/40 bg-emerald-950/30 text-emerald-600"
-          >
-            <CheckCircle2 size={10} />
+          <div className="flex items-center gap-1.5">
+            <CheckCircle2 size={11} className="text-emerald-600" />
             <span>All systems operational</span>
           </div>
         </footer>

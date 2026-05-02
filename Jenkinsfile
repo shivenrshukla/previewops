@@ -34,20 +34,34 @@ pipeline {
                 script {
                     // 1. Create unique namespace
                     sh "kubectl create namespace ${NAMESPACE} --dry-run=client -o yaml | kubectl apply -f -"
-                    
-                    // 2. Inject the new Image Tag into our YAML file
+
+                    // 2. Apply RBAC so the pod can list namespaces
+                    sh "sed -i 's|NAMESPACE_PLACEHOLDER|${NAMESPACE}|g' k8s/rbac.yaml"
+                    sh "kubectl apply -f k8s/rbac.yaml"
+
+                    // 3. Create the GitHub token secret (idempotent)
+                    withCredentials([string(credentialsId: 'github-token', variable: 'GITHUB_TOKEN_VALUE')]) {
+                        sh """
+                            kubectl create secret generic bridge-api-secrets \
+                              --from-literal=GITHUB_TOKEN=${GITHUB_TOKEN_VALUE} \
+                              --namespace=${NAMESPACE} \
+                              --dry-run=client -o yaml | kubectl apply -f -
+                        """
+                    }
+
+                    // 4. Inject the new Image Tag into our YAML file
                     def fullImageName = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO_NAME}:${env.BRANCH_NAME}-${env.BUILD_NUMBER}"
                     sh "sed -i 's|IMAGE_TAG|${fullImageName}|g' k8s/deployment.yaml"
-                    
-                    // 3. Inject the Dynamic URL Route into Ingress YAMLs
+
+                    // 5. Inject the Dynamic URL Route into Ingress YAMLs
                     sh "sed -i 's|DYNAMIC_ENV|${env.BRANCH_NAME}|g' k8s/ingress.yaml"
-                    
-                    // 4. Deploy
+
+                    // 6. Deploy
                     sh "kubectl apply -f k8s/deployment.yaml -n ${NAMESPACE}"
                     sh "kubectl apply -f k8s/service.yaml -n ${NAMESPACE}"
                     sh "kubectl apply -f k8s/ingress.yaml -n ${NAMESPACE}"
-                    
-                    // 5. Wait for the URL
+
+                    // 7. Wait for the URL
                     echo "Preview Environment is spinning up in namespace: ${NAMESPACE}"
                     echo "Your dynamic URL will route via host: env-${env.BRANCH_NAME}.previewops.local"
                 }

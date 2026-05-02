@@ -40,6 +40,12 @@ COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/ .
 
+# Install kubectl to allow k8s-client to discover namespaces
+RUN apk add --no-cache curl && \
+    curl -LO https://dl.k8s.io/release/v1.28.0/bin/linux/amd64/kubectl && \
+    chmod +x kubectl && \
+    mv kubectl /usr/local/bin/
+
 # Expose the port your backend runs on
 EXPOSE 3000
 
