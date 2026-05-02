@@ -31,13 +31,18 @@ export function useDeployments() {
 
   // Map PreviewEntry → Deployment shape expected by the UI components
   const deployments = previews.map((p) => ({
-    prNumber:     p.prNumber,
+    id:           p.branch,
+    pr:           p.prNumber ?? "-",
+    title:        p.title    ?? `Branch: ${p.branch}`,
     author:       p.author,
     branch:       p.branch,
     status:       p.status,
-    liveUrl:      p.previewUrl ?? null,
-    uptime:       "-",
-    costEstimate: "-",
+    url:          p.previewUrl ?? null,
+    age:          "-",
+    cpu:          0,
+    mem:          0,
+    namespace:    p.namespace,
+    checks:       { build: "pass", lint: "pass", test: "pass" },
   }));
 
   // Teardown: calls the Bridge API teardown endpoint

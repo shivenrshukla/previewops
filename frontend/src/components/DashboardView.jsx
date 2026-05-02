@@ -4,7 +4,7 @@
  * electric-cyan on deep-navy, data-dense cards, animated indicators.
  */
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useDeployments } from "@/hooks/useDeployments";
 
 /* ─── Inline Google Font ─────────────────────────────────────────────────── */
@@ -539,7 +539,8 @@ export default function DashboardView() {
 
   const filtered = deployments.filter(d => {
     const q = query.toLowerCase();
-    const matchesQ = !q || [d.pr.toString(), d.author, d.branch, d.title].some(s => s.toLowerCase().includes(q));
+    const prStr = d.pr != null ? d.pr.toString() : "";
+    const matchesQ = !q || [prStr, d.author ?? "", d.branch ?? "", d.title ?? ""].some(s => s.toLowerCase().includes(q));
     const matchesF = filter === "ALL" || d.status.toUpperCase() === filter;
     return matchesQ && matchesF;
   });
