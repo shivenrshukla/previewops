@@ -1,9 +1,10 @@
 pipeline {
     agent any
     environment {
-        AWS_ACCOUNT_ID = '885232248552' // Find this in the top right of AWS Console
+        AWS_ACCOUNT_ID = '885232248552'
         AWS_REGION     = 'eu-north-1'
-        ECR_REPO_NAME  = 'previewops-backend' // The name of the repo you created earlier
+        ECR_REPO_NAME  = 'previewops-backend'
+        EKS_CLUSTER_NAME = 'PreviewOps-CI-Server'
 
         CLEAN_ID       = "${env.BRANCH_NAME.toLowerCase().replaceAll(' ', '-')}"
         NAMESPACE      = "preview-env-${CLEAN_ID}"
@@ -14,7 +15,6 @@ pipeline {
                 dir('frontend') {
                     sh 'npm install'
                     sh 'npm run build'
-                    // Output lands in frontend/dist/ — picked up by COPY . . in Dockerfile
                 }
             }
         }
@@ -34,6 +34,9 @@ pipeline {
         stage('Deploy to EKS') {
             steps {
                 script {
+                    // 0. GENERATE KUBECONFIG: Tell kubectl exactly how to talk to your EKS cluster
+                    sh "aws eks update-kubeconfig --region ${AWS_REGION} --name ${EKS_CLUSTER_NAME}"
+                    
                     // 1. Create unique namespace
                     sh "kubectl create namespace ${NAMESPACE} --dry-run=client -o yaml | kubectl apply -f -"
 
