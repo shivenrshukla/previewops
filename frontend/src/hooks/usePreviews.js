@@ -26,7 +26,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 const getDynamicApiBase = () => {
   if (typeof window === "undefined") return "";
 
-  const { hostname, protocol } = window.location;
+  const { hostname } = window.location;
   const envVar = import.meta.env.VITE_BRIDGE_API_URL;
 
   // 1. Manual override takes precedence if it's a valid full URL
@@ -35,19 +35,10 @@ const getDynamicApiBase = () => {
     return envVar;
   }
 
-  // 2. Dynamic Preview Environment detection (EKS)
-  // If we are on env-XXX.previewops.local, we prefix with "api-"
-  if (hostname.includes("previewops.local") && !hostname.startsWith("api-")) {
-    return `${protocol}//api-${hostname}`;
-  }
-
-  // 3. Development fallback
-  // Return empty string for relative paths, letting Vite proxy handles it
-  if (hostname === "localhost" || hostname === "127.0.0.1") {
-    return "";
-  }
-
-  // 4. Default to same-origin relative path
+  // 2. Always use same-origin (empty string) — the Express server serves both
+  //    the React frontend AND the /api/* routes on the same host and port.
+  //    This works for both local dev (Vite proxy handles /api → :3000)
+  //    and production EKS (env-{branch}.previewops.local serves everything).
   return "";
 };
 
