@@ -4,7 +4,7 @@ pipeline {
         AWS_ACCOUNT_ID = '885232248552'
         AWS_REGION     = 'eu-north-1'
         ECR_REPO_NAME  = 'previewops-backend'
-        EKS_CLUSTER_NAME = 'PreviewOps-CI-Server'
+        EKS_CLUSTER_NAME = 'previewops-cluster'
 
         CLEAN_ID       = "${env.BRANCH_NAME.toLowerCase().replaceAll(' ', '-')}"
         NAMESPACE      = "preview-env-${CLEAN_ID}"
