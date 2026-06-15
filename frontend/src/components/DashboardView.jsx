@@ -17,38 +17,38 @@ const FontLink = () => (
 
 /* ─── Design tokens ──────────────────────────────────────────────────────── */
 const T = {
-  // Backgrounds — Deep Red / Maroon theme
-  bg0:      "#0d0202",   // abyssal red
-  bg1:      "#1a0505",   // dark maroon
-  bg2:      "#260808",   // card base
-  bg3:      "#330b0b",   // card elevated
-  bg4:      "#400d0d",   // hover surface
+  // Backgrounds — Deep Violet / Indigo theme
+  bg0:      "#04020f",   // abyssal violet
+  bg1:      "#080517",   // dark indigo
+  bg2:      "#0d0820",   // card base
+  bg3:      "#120b2b",   // card elevated
+  bg4:      "#180e38",   // hover surface
 
   // Borders
-  border0:  "#1a0505",   // hairline
-  border1:  "#400d0d",   // default
-  border2:  "#661515",   // emphasis
-  border3:  "#8c1c1c",   // active
+  border0:  "#0d0820",   // hairline
+  border1:  "#1e1245",   // default
+  border2:  "#3d2490",   // emphasis
+  border3:  "#5930c4",   // active
 
-  // Accents — White for visibility
-  cyan:     "#ffffff",   // white text
-  cyanMid:  "#f0f0f0",
-  cyanDim:  "#400000",   // deep red backing
-  cyanGlow: "#ffffff20",
+  // Accents — Electric violet / indigo
+  cyan:     "#a78bfa",   // soft violet primary
+  cyanMid:  "#c4b5fd",
+  cyanDim:  "#180e38",   // deep violet backing
+  cyanGlow: "#a78bfa20",
 
-  emerald:  "#ff6b6b",   // soft red
-  amber:    "#ffca3a",   // keeping amber for warnings
+  emerald:  "#818cf8",   // indigo secondary
+  amber:    "#fbbf24",   // keeping amber for warnings
   amberDim: "#2a1a00",
-  red:      "#ff4c4c",   // error red
-  redDim:   "#2a0000",
-  violet:   "#ff8080",   // light red
-  violetDim:"#400000",
+  red:      "#f87171",   // error red (kept neutral)
+  redDim:   "#2a0a0a",
+  violet:   "#c084fc",   // bright purple accent
+  violetDim:"#2a0e45",
 
-  // Text — White focus
-  text0:    "#ffffff",   // primary white
-  text1:    "#ffb3b3",   // secondary (light pinkish red)
-  text2:    "#8c4040",   // muted red
-  text3:    "#4d0a0a",   // decorative dark red
+  // Text — Lavender focus
+  text0:    "#ede9fe",   // primary lavender-white
+  text1:    "#c4b5fd",   // secondary soft violet
+  text2:    "#6d4fc4",   // muted violet
+  text3:    "#2e1870",   // decorative dark violet
 
   font:     `'IBM Plex Mono', 'Courier New', monospace`,
 };
