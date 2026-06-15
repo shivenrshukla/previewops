@@ -6,6 +6,7 @@
 [![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com)
 [![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://react.dev)
 [![Express](https://img.shields.io/badge/Express.js-000000?style=for-the-badge&logo=express&logoColor=white)](https://expressjs.com)
+
 An enterprise-grade **Internal Developer Portal (IDP)** designed to orchestrate, track, and manage dynamic, ephemeral preview environments on-demand for Git pull requests. 
 The system bridges Git branches, CI/CD orchestration, and Kubernetes namespaces, offering developers a central, zero-configuration dashboard to inspect running instances, check build telemetry, verify checks (lint/test/build), and manage environments.
 ---
